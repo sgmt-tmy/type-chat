@@ -13,5 +13,5 @@ export function createMessage(
   if (trimmed === "") {
     throw new Error("メッセージは空にできません");
   }
-  return { groupId, text: "失敗します", sentAt };
+  return { groupId, text: trimmed, sentAt };
 }
