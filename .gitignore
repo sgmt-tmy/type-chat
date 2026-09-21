@@ -1,0 +1,17 @@
+# 認証情報
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# 依存・生成物
+node_modules/
+dist/
+coverage/
+*.log
+
+# ローカルデータ（チャットの保存先に使う可能性）
+*.db
+*.sqlite
+*.sqlite3
