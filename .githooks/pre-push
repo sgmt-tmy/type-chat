@@ -1,0 +1,9 @@
+#!/bin/sh
+# mainへの直接pushを拒否する
+while read local_ref local_sha remote_ref remote_sha; do
+  if [ "$remote_ref" = "refs/heads/main" ]; then
+    echo "mainへの直接pushは禁止です。ブランチを切ってPRを作成してください。" >&2
+    exit 1
+  fi
+done
+exit 0
