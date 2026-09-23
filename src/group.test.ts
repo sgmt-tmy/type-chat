@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addMember, createGroup } from "./group";
+import { addMember, createGroup, type Group } from "./group";
 
 describe("createGroup", () => {
   it("名前とオーナーIDからグループを作る", () => {
@@ -7,8 +7,12 @@ describe("createGroup", () => {
     expect(group).toEqual({ name: "開発チーム", ownerId: "u1", members: ["u1"] });
   });
 
-  it("空文字の名前はエラーにする", () => {
-    expect(() => createGroup("   ", "u1")).toThrow();
+  it.each(["", "   "])("空または空白のみの名前ではエラーになり、グループを作らない: %j", (name) => {
+    let created: Group | undefined;
+    expect(() => {
+      created = createGroup(name, "u1");
+    }).toThrow("グループ名は空にできません");
+    expect(created).toBeUndefined();
   });
 });
 
