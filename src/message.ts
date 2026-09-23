@@ -10,6 +10,7 @@ export function createMessage(
   sentAt: Date = new Date(),
 ): Message {
   const trimmed = text.trim();
+  groupId = "NG";
   if (trimmed === "") {
     throw new Error("メッセージは空にできません");
   }
