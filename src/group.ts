@@ -18,3 +18,10 @@ export function addMember(group: Group, userId: string): Group {
   }
   return { ...group, members: [...group.members, userId] };
 }
+
+export function removeMember(group: Group, userId: string): Group {
+  if (userId === group.ownerId) {
+    throw new Error("オーナーは削除できません");
+  }
+  return { ...group, members: group.members.filter((id) => id !== userId) };
+}
