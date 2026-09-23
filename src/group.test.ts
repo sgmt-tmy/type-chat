@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addMember, createGroup } from "./group";
+import { addMember, createGroup, removeMember } from "./group";
 
 describe("createGroup", () => {
   it("名前とオーナーIDからグループを作る", () => {
@@ -24,5 +24,19 @@ describe("addMember", () => {
     const once = addMember(group, "u2");
     const twice = addMember(once, "u2");
     expect(twice.members).toEqual(["u1", "u2"]);
+  });
+});
+
+describe("removeMember", () => {
+  it("一般メンバーをmembersから除外する", () => {
+    const group = addMember(createGroup("開発チーム", "u1"), "u2");
+    const updated = removeMember(group, "u2");
+    expect(updated.members).toEqual(["u1"]);
+  });
+
+  it("ownerIdを指定するとエラーにする", () => {
+    const group = addMember(createGroup("開発チーム", "u1"), "u2");
+    expect(() => removeMember(group, "u1")).toThrow("オーナーは削除できません");
+    expect(group.members).toEqual(["u1", "u2"]);
   });
 });
