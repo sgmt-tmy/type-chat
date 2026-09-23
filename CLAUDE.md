@@ -13,9 +13,10 @@ npm test        # テストのみ
 ## 構成
 
 - `src/` … 実装とテスト（`*.test.ts` を同じ場所に置く）
-- `.github/workflows/ci.yml` … PR時に `npm run check` を実行する
+- `.github/workflows/ci.yml` … PR時と `main` へのpush時に `npm run check` を実行する
 
-セットアップ手順は README.md を参照。
+セットアップ手順は README.md を参照。ただし「Gitフックの有効化」（`core.hooksPath` の設定）は人が行う。
+`git config core.hooksPath` が `.githooks` でない場合は、自分で設定せずに作業を止めて報告する。
 
 ## 規約
 
