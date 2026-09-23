@@ -20,3 +20,7 @@ export function createMessage(
   }
   return { groupId, text: trimmed, sentAt };
 }
+
+export function sortMessagesByTime(messages: Message[]): Message[] {
+  return [...messages].sort((a, b) => a.sentAt.getTime() - b.sentAt.getTime());
+}
