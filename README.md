@@ -15,7 +15,7 @@ npm install
 ## Gitフックの有効化（クローン後に1回）
 mainへの直接pushを防ぐフックを有効にする。この設定はコミットされないため、クローンするたびに実行する。
 ```bash
-git config core.hooksPath .githooks
+npm run setup:hooks
 ```
 設定を確認するには、次を実行して `.githooks` と表示されればよい。
 ```bash
