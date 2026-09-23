@@ -6,14 +6,15 @@
 ## コマンド
 
 ```bash
-npm run check   # lint + typecheck + test（これが通ることが完了の条件）
-npm test        # テストのみ
+npm run check       # lint + typecheck + test（これが通ることが完了の条件）
+npm test            # テストのみ
+npm run setup:hooks # Gitフック（main保護）を有効化する。クローン直後に1回実行する
 ```
 
 ## 構成
 
 - `src/` … 実装とテスト（`*.test.ts` を同じ場所に置く）
-- `.github/workflows/ci.yml` … PR時に `npm run check` を実行する
+- `.github/workflows/ci.yml` … PR時と `main` へのpush時に `npm run check` を実行する
 
 セットアップ手順は README.md を参照。
 
@@ -35,7 +36,8 @@ npm test        # テストのみ
 
 - `main` へ直接pushする
 - PRをマージする（人が行う）
-- `--no-verify` を使う。`core.hooksPath` を変更する
+- `--no-verify` を使う
+- 生の `git config core.hooksPath` を実行する（有効化は `npm run setup:hooks` を使う。直接コマンドは値を問わず禁止）
 - force push、履歴の書き換え、ブランチの削除
 - `.env` や鍵ファイルを読む・作る・コミットする
 - 課金が発生する操作、リポジトリの公開範囲の変更
