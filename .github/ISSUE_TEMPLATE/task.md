@@ -9,4 +9,5 @@ about: 作業単位のIssue
 - [ ]
 
 ## 受け入れ条件
+<!-- 関連する仕様書（docs/specs/・docs/decisions/）があればリンクする -->
 - [ ]
