@@ -1,6 +1,6 @@
 ---
 
-## status: approved         # draft / approved / implemented / deprecated
+## status: implemented         # draft / approved / implemented / deprecated
 updated: 2026-09-24
 
 # グループへのメッセージ投稿
@@ -78,13 +78,13 @@ function postMessageToGroup(
 
 ## 受け入れ条件
 
-- [ ] グループのメンバーが投稿すると、`groupId` が正しく設定された `Message` が返る
-- [ ] グループのオーナー（`ownerId`）が投稿できる（オーナーは常に `members` に含まれるため）
-- [ ] グループのメンバーでないユーザーが投稿しようとすると例外が投げられる
-- [ ] 空文字（トリム後空文字を含む）を投稿しようとすると例外が投げられる（`createMessage` の既存挙動を継承）
-- [ ] `MESSAGE_MAX_LENGTH`（1000文字）を超える本文を投稿しようとすると例外が投げられる（既存挙動を継承）
-- [ ] `sentAt` を指定した場合、その値が `Message.sentAt` に反映される
-- [ ] `sentAt` を省略した場合、現在時刻が `Message.sentAt` に設定される
+- [x] グループのメンバーが投稿すると、`groupId` が正しく設定された `Message` が返る
+- [x] グループのオーナー（`ownerId`）が投稿できる（オーナーは常に `members` に含まれるため）
+- [x] グループのメンバーでないユーザーが投稿しようとすると例外が投げられる
+- [x] 空文字（トリム後空文字を含む）を投稿しようとすると例外が投げられる（`createMessage` の既存挙動を継承）
+- [x] `MESSAGE_MAX_LENGTH`（1000文字）を超える本文を投稿しようとすると例外が投げられる（既存挙動を継承）
+- [x] `sentAt` を指定した場合、その値が `Message.sentAt` に反映される
+- [x] `sentAt` を省略した場合、現在時刻が `Message.sentAt` に設定される
 
 
 
