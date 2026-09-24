@@ -1,6 +1,6 @@
 ---
 
-## status: approved        # draft / approved / implemented / deprecated
+## status: implemented        # draft / approved / implemented / deprecated
 updated: 2026-09-25
 
 # グループ名の変更
@@ -64,15 +64,15 @@ function renameGroup(
 
 ## 受け入れ条件
 
-- [ ] オーナー（`requesterId === group.ownerId`）が変更すると、`name` が更新された新しい `Group` が返る
-- [ ] オーナー以外のメンバーが変更しようとすると例外が投げられ、元の `group` は変更されない
-- [ ] グループに属さないユーザーが変更しようとすると例外が投げられる
-- [ ] 空文字（トリム後空文字を含む）を指定すると例外が投げられる
-- [ ] 前後に空白を含む名前を指定すると、トリムされた名前が設定される
-- [ ] `GROUP_NAME_MAX_LENGTH`（50文字）ちょうどの名前は変更できる
-- [ ] `GROUP_NAME_MAX_LENGTH`（50文字）を超える名前を指定すると例外が投げられる
-- [ ] 変更後、`ownerId` と `members` は変更前と同じ値のまま保たれる
-- [ ] 変更前の `group` オブジェクト自体は変更されない（`renameGroup` はイミュータブルに新しい `Group` を返す）
+- [x] オーナー（`requesterId === group.ownerId`）が変更すると、`name` が更新された新しい `Group` が返る
+- [x] オーナー以外のメンバーが変更しようとすると例外が投げられ、元の `group` は変更されない
+- [x] グループに属さないユーザーが変更しようとすると例外が投げられる
+- [x] 空文字（トリム後空文字を含む）を指定すると例外が投げられる
+- [x] 前後に空白を含む名前を指定すると、トリムされた名前が設定される
+- [x] `GROUP_NAME_MAX_LENGTH`（50文字）ちょうどの名前は変更できる
+- [x] `GROUP_NAME_MAX_LENGTH`（50文字）を超える名前を指定すると例外が投げられる
+- [x] 変更後、`ownerId` と `members` は変更前と同じ値のまま保たれる
+- [x] 変更前の `group` オブジェクト自体は変更されない（`renameGroup` はイミュータブルに新しい `Group` を返す）
 
 
 
