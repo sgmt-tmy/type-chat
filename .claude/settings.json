@@ -32,5 +32,18 @@
       "Bash(git reset --hard:*)",
       "Bash(git config core.hooksPath:*)"
     ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/lint-edited-file.js\""
+          }
+        ]
+      }
+    ]
   }
 }
