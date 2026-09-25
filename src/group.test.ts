@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { GROUP_NAME_MAX_LENGTH, addMember, createGroup, removeMember, renameGroup } from "./group";
+import {
+  GROUP_NAME_MAX_LENGTH,
+  addMember,
+  createGroup,
+  removeMember,
+  renameGroup,
+  transferOwner,
+} from "./group";
 
 describe("createGroup", () => {
   it("名前とオーナーIDからグループを作る", () => {
@@ -100,5 +107,61 @@ describe("renameGroup", () => {
     const group = createGroup("開発チーム", "u1");
     renameGroup(group, "u1", "新チーム");
     expect(group.name).toBe("開発チーム");
+  });
+});
+
+describe("transferOwner", () => {
+  it("オーナーが別のメンバーに委譲すると、ownerIdが更新された新しいGroupが返る", () => {
+    const group = addMember(createGroup("開発チーム", "u1"), "u2");
+    const updated = transferOwner(group, "u1", "u2");
+    expect(updated.ownerId).toBe("u2");
+  });
+
+  it("オーナー以外のメンバーが委譲しようとすると例外が投げられ、元のgroupは変更されない", () => {
+    const group = addMember(addMember(createGroup("開発チーム", "u1"), "u2"), "u3");
+    expect(() => transferOwner(group, "u2", "u3")).toThrow(
+      "オーナー権限の委譲はオーナーのみ可能です",
+    );
+    expect(group.ownerId).toBe("u1");
+  });
+
+  it("グループに属さないユーザーが委譲しようとすると例外が投げられる", () => {
+    const group = addMember(createGroup("開発チーム", "u1"), "u2");
+    expect(() => transferOwner(group, "u3", "u2")).toThrow(
+      "オーナー権限の委譲はオーナーのみ可能です",
+    );
+  });
+
+  it("委譲先が現在のオーナー自身の場合は例外が投げられる", () => {
+    const group = createGroup("開発チーム", "u1");
+    expect(() => transferOwner(group, "u1", "u1")).toThrow(
+      "委譲先が現在のオーナーと同じです",
+    );
+  });
+
+  it("委譲先がグループのメンバーでない場合は例外が投げられる", () => {
+    const group = createGroup("開発チーム", "u1");
+    expect(() => transferOwner(group, "u1", "u2")).toThrow(
+      "委譲先はグループのメンバーである必要があります",
+    );
+  });
+
+  it("委譲が成功しても、旧オーナーはmembersに残ったままである", () => {
+    const group = addMember(createGroup("開発チーム", "u1"), "u2");
+    const updated = transferOwner(group, "u1", "u2");
+    expect(updated.members).toContain("u1");
+  });
+
+  it("委譲後、nameとmembersは変更前と同じ値のまま保たれる", () => {
+    const group = addMember(createGroup("開発チーム", "u1"), "u2");
+    const updated = transferOwner(group, "u1", "u2");
+    expect(updated.name).toBe(group.name);
+    expect(updated.members).toEqual(group.members);
+  });
+
+  it("変更前のgroupオブジェクト自体は変更されない", () => {
+    const group = addMember(createGroup("開発チーム", "u1"), "u2");
+    transferOwner(group, "u1", "u2");
+    expect(group.ownerId).toBe("u1");
   });
 });
