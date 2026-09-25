@@ -146,12 +146,6 @@ describe("transferOwner", () => {
     );
   });
 
-  it("委譲が成功しても、旧オーナーはmembersに残ったままである", () => {
-    const group = addMember(createGroup("開発チーム", "u1"), "u2");
-    const updated = transferOwner(group, "u1", "u2");
-    expect(updated.members).toContain("u1");
-  });
-
   it("委譲後、nameとmembersは変更前と同じ値のまま保たれる", () => {
     const group = addMember(createGroup("開発チーム", "u1"), "u2");
     const updated = transferOwner(group, "u1", "u2");
