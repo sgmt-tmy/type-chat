@@ -41,3 +41,16 @@ export function renameGroup(group: Group, requesterId: string, newName: string):
   }
   return { ...group, name: trimmed };
 }
+
+export function transferOwner(group: Group, requesterId: string, newOwnerId: string): Group {
+  if (requesterId !== group.ownerId) {
+    throw new Error("オーナー権限の委譲はオーナーのみ可能です");
+  }
+  if (newOwnerId === group.ownerId) {
+    throw new Error("委譲先が現在のオーナーと同じです");
+  }
+  if (!group.members.includes(newOwnerId)) {
+    throw new Error("委譲先はグループのメンバーである必要があります");
+  }
+  return { ...group, ownerId: newOwnerId };
+}
