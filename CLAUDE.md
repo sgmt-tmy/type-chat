@@ -6,7 +6,8 @@
 ## コマンド
 
 ```bash
-npm run check       # lint + typecheck + test（これが通ることが完了の条件）
+npm run check       # lint + typecheck + 仕様書の形式チェック + test（これが通ることが完了の条件）
+npm run check:specs # docs/specs/ の仕様書の形式チェックのみ
 npm test            # テストのみ
 npm run setup:hooks # Gitフック（main保護）を有効化する。クローン直後に1回実行する
 ```

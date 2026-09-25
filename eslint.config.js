@@ -7,7 +7,7 @@ export default tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    files: [".claude/hooks/**/*.js"],
+    files: [".claude/hooks/**/*.js", "scripts/**/*.js"],
     languageOptions: {
       globals: globals.node,
     },
