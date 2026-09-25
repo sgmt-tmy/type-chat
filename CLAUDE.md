@@ -16,6 +16,7 @@ npm run setup:hooks # Gitフック（main保護）を有効化する。クロー
 
 - `src/` … 実装とテスト（`*.test.ts` を同じ場所に置く）
 - `.github/workflows/ci.yml` … PR時と `main` へのpush時に `npm run check` を実行する
+- `.github/workflows/pr-auto-review.yml` … PR作成・更新時に `.claude/agents/spec-reviewer.md` と同じ観点でClaudeが自動レビューし、PRにコメントを投稿する。判定はあくまで参考情報で、マージ可否を決める権限は持たない（マージは人が行う）。必須ステータスチェックにはしていない
 
 セットアップ手順は README.md を参照。
 
