@@ -45,3 +45,5 @@
 ## テンプレートを変えるとき
 
 `decisions/_template.md` は、Vault側のADRテンプレート（`90_Templates/adr.md`）と同じ見出し（状況・決定・検討した選択肢・結果）を使う。**見出しを変えるときは、両方のテンプレートを直す。**
+
+<!-- T11ドライラン検証(b)の参考メモ: Issue #70（harness-dryrun, gate:true）でのgate承認フロー確認用の追記 -->
