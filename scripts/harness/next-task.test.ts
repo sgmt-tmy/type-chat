@@ -253,6 +253,55 @@ describe("decideNextTask", () => {
     expect(decide([]).result).toBe("DONE");
   });
 
+  describe("検証モード（harness-dryrun）", () => {
+    const dryrunLabels = ["harness", "risk:low", "harness-dryrun"];
+
+    it("検証モードでは harness-dryrun ラベル付きの Issue だけを選ぶ（番号が小さい通常の Issue があっても）", () => {
+      const issues = [issue(1), issue(2, { gate: true }), issue(3, { labels: dryrunLabels })];
+
+      expect(decideNextTask({ issues, branches: [], pulls: [], dryrun: true })).toEqual({
+        result: "RUN",
+        issue: 3,
+        role: "implementer",
+        summary: "RUN #3 (implementer)",
+        attention: [],
+        errors: [],
+      });
+    });
+
+    it("検証モードで harness-dryrun ラベル付きの open の Issue がなければ DONE", () => {
+      expect(decideNextTask({ issues: [issue(1)], branches: [], pulls: [], dryrun: true }).result).toBe("DONE");
+    });
+
+    it("検証モードでも、依存先は harness-dryrun ラベルのない Issue を参照できる", () => {
+      const issues = [issue(1, { state: "CLOSED" }), issue(2), issue(3, { dependsOn: [1], labels: dryrunLabels })];
+
+      expect(decideNextTask({ issues, branches: [], pulls: [], dryrun: true }).issue).toBe(3);
+      expect(
+        decideNextTask({ issues: [issue(2), issue(3, { dependsOn: [2], labels: dryrunLabels })], branches: [], pulls: [], dryrun: true })
+          .result,
+      ).toBe("BLOCKED");
+    });
+
+    it("検証モードを有効にしなければ、harness-dryrun ラベル付きの Issue は選ばない", () => {
+      const issues = [issue(1, { labels: dryrunLabels }), issue(2)];
+
+      expect(decide(issues)).toMatchObject({ result: "RUN", issue: 2 });
+      expect(decideNextTask({ issues, branches: [], pulls: [], dryrun: false }).issue).toBe(2);
+      expect(decide([issue(1, { labels: dryrunLabels })]).result).toBe("DONE");
+    });
+
+    it("検証モードを有効にしなければ、harness-dryrun ラベル付きの Issue は attention にも ERROR にも含めない", () => {
+      const issues = [
+        issue(1, { gate: true, labels: ["harness", "risk:low", "gate", "harness-dryrun"] }),
+        issue(2, { body: "メタデータなし", labels: dryrunLabels }),
+        issue(3),
+      ];
+
+      expect(decide(issues)).toMatchObject({ result: "RUN", issue: 3, attention: [], errors: [] });
+    });
+  });
+
   describe("候補が複数あるとき", () => {
     it("RUN の候補が複数あれば、入力の順番によらず番号が一番小さいものを選ぶ", () => {
       const issues = [issue(12), issue(10), issue(11)];
@@ -387,6 +436,15 @@ describe("runCli", () => {
 
     expect(result.code).toBe(1);
     expect(JSON.parse(result.stdout).errors).toEqual(["--branches を指定してください", "--pulls を指定してください"]);
+  });
+
+  it("--dryrun を付けると harness-dryrun ラベル付きの Issue だけを選ぶ", () => {
+    const issues = [...fixtureIssues, issue(6, { labels: ["harness", "risk:low", "harness-dryrun"] })];
+    const paths = writeInputs(issues, fixtureLsRemote, fixturePulls);
+    const argv = ["--issues", paths.issues, "--branches", paths.branches, "--pulls", paths.pulls];
+
+    expect(JSON.parse(runCli([...argv, "--dryrun"]).stdout).summary).toBe("RUN #6 (implementer)");
+    expect(JSON.parse(runCli(argv).stdout).summary).toBe("RUN #2 (implementer)");
   });
 
   it("JSONとして読めなければ ERROR", () => {

@@ -1,10 +1,12 @@
 // ハーネスのタスクDAG（harness ラベルのIssue群）から、次に実行するタスクを1つ決める。
 // ネットワークには出ず、渡されたファイルだけで判定する。同じ入力なら出力は必ず同じになる。
 // 判定の順番と優先順位は Issue #53（T9）の「実装前の確認」への回答（2026-09-26）。
-// 使い方: node scripts/harness/next-task.js --issues <file|-> --branches <file> --pulls <file>
+// 使い方: node scripts/harness/next-task.js --issues <file|-> --branches <file> --pulls <file> [--dryrun]
 //   --issues:   gh issue list --label harness --state all --limit 1000 --json number,title,body,labels,state,comments
 //   --branches: git ls-remote --heads origin の出力
 //   --pulls:    gh pr list --state all --limit 1000 --json number,headRefName,state
+//   --dryrun:   検証モード。harness-dryrun ラベルの付いた Issue だけを選定の対象にする（Issue #67（T12））。
+//               指定しなければ、harness-dryrun ラベルの付いた Issue は選定の対象にしない。
 
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -14,6 +16,7 @@ export const ROLE = "implementer";
 export const PROGRESS_MARKER = "<!-- harness:progress -->";
 // .claude/harness/conventions.md の「ブランチ名」
 export const BRANCH_PATTERN = /^(feat|fix)\/([1-9][0-9]*)-([a-z0-9]+(?:-[a-z0-9]+)*)$/;
+export const DRYRUN_LABEL = "harness-dryrun";
 const RISK_LABEL_PREFIX = "risk:";
 
 // 結果の優先順位（ERROR は他より先に判定する）。同じ種類の中では番号が一番小さいものを選ぶ。
@@ -157,10 +160,12 @@ function output(result, fields = {}) {
 
 /**
  * 次に実行するタスクを決める。
- * input: { issues: gh issue list の出力, branches: ブランチ名の配列, pulls: gh pr list の出力 }
+ * input: { issues: gh issue list の出力, branches: ブランチ名の配列, pulls: gh pr list の出力, dryrun: 検証モードか（既定 false） }
+ * 検証モードでは harness-dryrun ラベルの付いた open の Issue だけを、そうでなければ付いていないものだけを対象にする。
+ * 対象外の Issue も depends_on の参照先としては使う。
  * 返り値: { result, issue, role, summary, attention, errors }（キーの順番は固定）
  */
-export function decideNextTask({ issues, branches, pulls }) {
+export function decideNextTask({ issues, branches, pulls, dryrun = false }) {
   const shapeErrors = validateShape(issues, pulls);
   if (shapeErrors.length > 0) {
     return output("ERROR", { errors: shapeErrors });
@@ -168,7 +173,9 @@ export function decideNextTask({ issues, branches, pulls }) {
 
   const sorted = [...issues].sort((a, b) => a.number - b.number);
   const byNumber = new Map(sorted.map((issue) => [issue.number, issue]));
-  const open = sorted.filter((issue) => issue.state === "OPEN");
+  const open = sorted.filter(
+    (issue) => issue.state === "OPEN" && labelNames(issue).includes(DRYRUN_LABEL) === dryrun,
+  );
   if (open.length === 0) {
     return output("DONE");
   }
@@ -277,8 +284,12 @@ function readSource(path, readStdin) {
 }
 
 function parseArgs(argv) {
-  const args = {};
+  const args = { dryrun: false };
   for (let i = 0; i < argv.length; i++) {
+    if (argv[i] === "--dryrun") {
+      args.dryrun = true;
+      continue;
+    }
     const match = argv[i].match(/^--(issues|branches|pulls)$/);
     if (match) {
       args[match[1]] = argv[++i];
@@ -303,6 +314,7 @@ export function runCli(argv, readStdin = () => readFileSync(0, "utf-8")) {
         issues: JSON.parse(readSource(args.issues, readStdin)),
         branches: parseLsRemote(readSource(args.branches, readStdin)),
         pulls: JSON.parse(readSource(args.pulls, readStdin)),
+        dryrun: args.dryrun,
       });
     } catch (error) {
       result = output("ERROR", {

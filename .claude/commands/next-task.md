@@ -19,6 +19,21 @@ node scripts/harness/next-task.js --issues "$DIR/issues.json" --branches "$DIR/b
 
 出力は1行のJSON（`{"result", "issue", "role", "summary", "attention", "errors"}`）。終了コードは判定できたら 0、`ERROR` なら 1。
 
+### 検証モード（`harness-dryrun`）
+
+ハーネスの通しの検証（ドライラン）のときだけ使う。追加の経緯は Issue #67（T12）。
+
+- `harness-dryrun` ラベルは、検証のために作ったタスクIssueの印。`harness` ラベルと一緒に付ける（`gh issue list --label harness` で集めるため）。
+- 検証モードは、スクリプトに `--dryrun` を付けて有効にする。有効にすると、`harness-dryrun` ラベルの付いた open の Issue だけが選定の対象になる（通常のタスクは選ばない）。
+
+```bash
+node scripts/harness/next-task.js --issues "$DIR/issues.json" --branches "$DIR/branches.txt" --pulls "$DIR/pulls.json" --dryrun
+```
+
+- `--dryrun` を付けない通常の実行では、`harness-dryrun` ラベルの付いた Issue は選定の対象にならない（`RUN` / `WAIT_GATE` / `ESCALATE` にも、`attention` にも、メタデータ不正の `ERROR` にも出ない）。
+- どちらのモードでも、対象外の Issue は `depends_on` の参照先としては使う（検証用のタスクが通常のタスクに依存してよい）。
+- `--dryrun` は、人から検証を頼まれたときだけ付ける。通常の `/next-task` では付けない。
+
 ## 2. 結果に応じて動く
 
 | `result` | すること |
