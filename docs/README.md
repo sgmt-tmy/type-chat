@@ -45,3 +45,5 @@
 ## テンプレートを変えるとき
 
 `decisions/_template.md` は、Vault側のADRテンプレート（`90_Templates/adr.md`）と同じ見出し（状況・決定・検討した選択肢・結果）を使う。**見出しを変えるときは、両方のテンプレートを直す。**
+
+なお、ハーネス（自律運用の仕組み）の規約は `docs/` ではなく `.claude/harness/` に置く（詳細は `.claude/harness/conventions.md` を参照）。
