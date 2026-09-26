@@ -134,6 +134,11 @@ describe("evaluateGateRules", () => {
     const ctxNoGate = emptyCtx();
     ctxNoGate.issueBody = "## 受け入れ条件\n- [ ] チェックボックス\n## 対象外\n";
     expect(evaluateGateRules(rules, ctxNoGate).gate).toBe(false);
+
+    // 見出しは「行頭が section で始まる」ものを対象にする（harness-task.md の「## 受け入れ条件（機械判定）」に合わせる）。
+    const ctxSuffixHeading = emptyCtx();
+    ctxSuffixHeading.issueBody = "## 受け入れ条件（機械判定）\n- [ ] チェックボックス\n## 対象外\n";
+    expect(evaluateGateRules(rules, ctxSuffixHeading).gate).toBe(false);
   });
 
   it("failure_threshold: 試行回数が max_attempts 以上なら該当する（threshold_from）", () => {

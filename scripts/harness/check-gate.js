@@ -128,10 +128,10 @@ function evalSpecLink(rule, ctx) {
   return { matched: violations.length > 0, evidence: violations.join(", ") };
 }
 
-/** 「見出し文字列」セクション（次の同種の見出しまで）の行を取り出す。見つからなければ空配列。 */
+/** 行頭が heading で始まる見出しのセクション（次の同じレベル以上の見出しまで）の行を取り出す。見つからなければ空配列。 */
 function extractSection(body, heading) {
   const lines = body.split(/\r?\n/);
-  const headingIndex = lines.findIndex((line) => line.trim() === heading);
+  const headingIndex = lines.findIndex((line) => line.trim().startsWith(heading));
   if (headingIndex === -1) {
     return [];
   }
