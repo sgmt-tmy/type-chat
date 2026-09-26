@@ -211,10 +211,13 @@ last_failure: npm run check の typecheck で失敗（src/group.ts の型エラ�
 
 決定の経緯: Issue #54（T10）のgate承認コメント（2026-09-26）。案A（Issueへのコメント＋ラベル＋GitHub標準の通知）で始め、Slack などへの外部送信（案B）は、不足が分かったら別タスクにする。
 
+Issue #55（T11）の通しの検証で、案Aのままでは通知が人に届かないことが実地で確定した。`notify.js` が実行する `gh` はリポジトリオーナー本人のアカウントで認証されており、GitHubは自分自身が行った操作（自分のコメント・自分のラベル付与）には通知を出さないため。対応（Issue #73／T13のgate承認コメント、2026-09-26）として、別のボット用GitHubアカウント（コラボレーターのTriage相当、Issueへのコメント権限のみ）から通知コメントを投稿する方式（ボットアカウント化）に変更した。詳細はVault側 ADR 0006（通知到達問題への対応）を参照。
+
 ### 通知の手段
 
 - `scripts/harness/notify.js` が、gh で該当Issueにコメントを書く。止まったイベントでは `gate:waiting` ラベルも付ける。
-- 人には GitHub標準の通知（メール・モバイル）で届く。新しい認証情報と外部送信は使わない（WebhookのURLなどをリポジトリに置かない）。
+- `gh` はボット用GitHubアカウントのPersonal Access Tokenで実行する。PATは環境変数 `HARNESS_NOTIFY_BOT_TOKEN` で渡し（`gh` はこれを `GH_TOKEN` として使う）、リポジトリには一切書き込まない。この環境変数が未設定なら `notify.js` はエラーにする（本人アカウントで実行すると通知が届かないため）。
+- 人には GitHub標準の通知（メール・モバイル）で届く。Webhookなど、GitHub標準の通知以外の新しい外部送信は使わない。
 - コメントの1行目はマーカー `<!-- harness:notify event=<イベント> -->`（`TASK_DONE` は `<!-- harness:notify event=TASK_DONE pr=#<PR番号> -->`）。最新の通知コメントが同じマーカーで、止まったイベントなら `gate:waiting` ラベルも残っているときは、送信済みとして送らない。
 
 | イベント | きっかけ | 本文に書くこと | `gate:waiting` |

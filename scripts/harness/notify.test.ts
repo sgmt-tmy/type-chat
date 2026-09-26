@@ -1,7 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
+  BOT_TOKEN_ENV,
   WAITING_LABEL,
   alreadyNotified,
+  buildGhEnv,
   buildNotification,
   latestProgressFields,
   notify,
@@ -13,6 +15,17 @@ type View = { url: string; body: string; labels: { name: string }[]; comments: C
 type Call = { args: string[]; input?: string };
 
 const URL = "https://github.com/sgmt-tmy/type-chat/issues/54";
+const BOT_TOKEN = "test-bot-pat";
+
+// notify() は既定でこの環境変数からボットアカウントのPATを読む（Issue #73 / T13）。
+// 未設定時の挙動は別のテストで明示的に token: "" を渡して確かめる。
+beforeEach(() => {
+  process.env[BOT_TOKEN_ENV] = BOT_TOKEN;
+});
+
+afterEach(() => {
+  delete process.env[BOT_TOKEN_ENV];
+});
 
 function issueBody(gateReasons = "[irreversible, security_boundary]", maxAttempts = 3): string {
   return [
@@ -275,6 +288,35 @@ describe("notify（送信はモック）", () => {
     expect(notify({ event: "WAIT_GATE", issue: 54, pr: 70 }, gh.run).errors[0]).toContain("--pr");
     expect(notify({ event: "WAIT_GATE", issue: Number.NaN }, gh.run).errors[0]).toContain("--issue");
     expect(gh.calls).toHaveLength(0);
+  });
+
+  it("ボットアカウントのPAT（環境変数）が渡されていなければ gh を呼ばずにエラー", () => {
+    const gh = fakeGh(view());
+    const result = notify({ event: "WAIT_GATE", issue: 54 }, gh.run, "");
+    expect(result.sent).toBe(false);
+    expect(result.errors[0]).toContain(BOT_TOKEN_ENV);
+    expect(gh.calls).toHaveLength(0);
+  });
+
+  it("token を省略すると環境変数 HARNESS_NOTIFY_BOT_TOKEN から読む", () => {
+    const gh = fakeGh(view());
+    const result = notify({ event: "TASK_DONE", issue: 54, pr: 70 }, gh.run);
+    expect(result.sent).toBe(true);
+  });
+});
+
+describe("buildGhEnv", () => {
+  it("トークンがあれば GH_TOKEN を環境変数に追加する（ボットアカウントとして gh を実行する）", () => {
+    const env = buildGhEnv("secret-pat");
+    expect(env.GH_TOKEN).toBe("secret-pat");
+  });
+
+  it("トークンがなければ process.env をそのまま返す（GH_TOKEN を足さない）", () => {
+    expect(buildGhEnv("")).toBe(process.env);
+  });
+
+  it("token を省略すると環境変数 HARNESS_NOTIFY_BOT_TOKEN から読む", () => {
+    expect(buildGhEnv().GH_TOKEN).toBe(BOT_TOKEN);
   });
 });
 

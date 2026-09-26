@@ -1,8 +1,12 @@
 // オーケストレーターが止まったとき（WAIT_GATE / ESCALATE）と、タスクのPRができたとき（TASK_DONE）に人へ通知する。
 // 通知の手段は、該当Issueへのコメントと `gate:waiting` ラベル（GitHub標準の通知で人に届く）。
-// 決定の経緯: Issue #54（T10）のgate承認コメント（2026-09-26。案Aで開始し、Slackなどの外部送信は使わない）。
+// 決定の経緯: Issue #54（T10）のgate承認コメント（2026-09-26。案Aで開始）。
+//   → Issue #73（T13）のgate承認コメント（2026-09-26）で、本人アカウントでは通知が届かないことが分かり、
+//     ボット用GitHubアカウントのPATで gh を実行する方式に変更（詳細は Vault側 ADR 0006）。
 // 使い方: node scripts/harness/notify.js --event <WAIT_GATE|ESCALATE|TASK_DONE> --issue <番号> [--pr <番号>]
-//   gh コマンドで Issue を読み、コメントとラベルを付ける。認証情報は gh のログイン状態だけを使う。
+//   gh コマンドで Issue を読み、コメントとラベルを付ける。環境変数 HARNESS_NOTIFY_BOT_TOKEN に
+//   ボットアカウントのPATを渡す（gh の GH_TOKEN として使う。リポジトリには一切書き込まない）。
+//   未設定ならエラーにする（本人アカウントで実行すると、GitHubは自分自身の操作を通知しないため）。
 
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -11,6 +15,8 @@ import { PROGRESS_MARKER } from "./next-task.js";
 
 export const EVENTS = ["WAIT_GATE", "ESCALATE", "TASK_DONE"];
 export const WAITING_LABEL = "gate:waiting";
+// gh をボットアカウントで実行するためのPATを渡す環境変数（Issue #73 / T13）。
+export const BOT_TOKEN_ENV = "HARNESS_NOTIFY_BOT_TOKEN";
 // 人の判断待ちで止まったイベント。WAITING_LABEL を付ける
 const WAITING_EVENTS = ["WAIT_GATE", "ESCALATE"];
 const NOTIFY_MARKER_PATTERN = /^<!-- harness:notify event=([A-Z_]+)(?: pr=#(\d+))? -->$/;
@@ -179,12 +185,20 @@ function validateArgs({ event, issue, pr }) {
   return errors;
 }
 
+function tokenFromEnv() {
+  return process.env[BOT_TOKEN_ENV];
+}
+
 /**
  * 通知を送る。runGh(args, stdin?) は gh を実行して標準出力を返す関数（失敗時は例外）。テストではモックを渡す。
+ * token はボットアカウントのPAT（省略時は環境変数 HARNESS_NOTIFY_BOT_TOKEN から読む）。未設定ならエラーにする。
  * 返り値: { sent, skipped, actions, errors }
  */
-export function notify(args, runGh) {
+export function notify(args, runGh, token = tokenFromEnv()) {
   const errors = validateArgs(args);
+  if (!token) {
+    errors.push(`${BOT_TOKEN_ENV} が設定されていません（notify.js の実行にはボットアカウントのPATを環境変数で渡す）`);
+  }
   if (errors.length > 0) {
     return { sent: false, skipped: false, actions: [], errors };
   }
@@ -229,8 +243,18 @@ function parseArgs(argv) {
   return args;
 }
 
+/** gh に渡す環境変数を組み立てる。token があれば GH_TOKEN として渡す（gh はこれをボットアカウントの認証として使う）。 */
+export function buildGhEnv(token = tokenFromEnv()) {
+  return token ? { ...process.env, GH_TOKEN: token } : process.env;
+}
+
 function defaultRunGh(args, input) {
-  return execFileSync("gh", args, { input, encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] });
+  return execFileSync("gh", args, {
+    input,
+    encoding: "utf-8",
+    stdio: ["pipe", "pipe", "pipe"],
+    env: buildGhEnv(),
+  });
 }
 
 /** CLI本体。process.exit は呼ばず { code, stdout } を返す（テストのため）。code: 0 = 送った／送信済み、1 = エラー */
