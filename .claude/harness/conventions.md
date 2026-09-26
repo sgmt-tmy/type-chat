@@ -62,7 +62,7 @@ max_attempts: 3
 | `risk_cost` | リスクやコスト（課金・利用枠）が大きい |
 | `security_boundary` | 権限・認証情報・エージェントが従うルールなど、セキュリティ境界に触れる |
 
-各区分の具体的な判定基準は T3（#47）で決める。
+各区分の具体的な判定基準は `.claude/harness/gate-rules.json` にある（決定の経緯は Issue #47（T3））。形式の検証は `scripts/harness/gate-rules.js` の `validateGateRules`。禁止事項（CLAUDE.md の「やってはいけないこと」と `.claude/settings.json` の deny）は gate の対象ではなく、承認されても実行しない。
 
 ### 書き方の制約
 

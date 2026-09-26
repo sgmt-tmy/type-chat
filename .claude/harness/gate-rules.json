@@ -1,0 +1,353 @@
+{
+  "version": 1,
+  "description": "gate: true の判定基準。計画時（Planner）と検証時（判定スクリプト）が同じ基準を機械的に当てはめるためのファイル。決定の経緯は Issue #47（T3）のgate承認コメントと、実装前の確認への回答（2026-09-26）。",
+  "notes": [
+    "判定スクリプトは、このファイルを作業ブランチではなく比較元（既定 origin/main）から読む。作業ブランチでこのファイルを緩めても、その変更自体の判定には効かないようにするため。",
+    "いずれかのルールに該当すれば gate: true とし、該当したルールの区分を gate_reasons に載せる。1つの変更が複数の区分に当たってよい。",
+    "ルールを変えるときは、このファイル・scripts/harness/gate-rules.js の検証・テストを同じPRで直す。このファイルの変更自体が security_boundary の gate 対象になる。"
+  ],
+  "forbidden": {
+    "description": "禁止。gateで人が承認しても実行しない。ここには参照だけを書き、gateのルールとしては書かない。",
+    "references": [
+      "CLAUDE.md の「やってはいけないこと」",
+      ".claude/settings.json の permissions.deny"
+    ]
+  },
+  "glob_syntax": "paths / exclude_paths / spec_paths の glob は、リポジトリルートからの相対パス（区切りは /）に対して照合する。* は / 以外の0文字以上、** は / を含む0文字以上（**/ は0個以上のディレクトリ）、? は / 以外の1文字。先頭が . のファイルも * に一致する。{a,b} の展開は使わない。",
+  "checks": {
+    "changed_paths": {
+      "description": "比較元との merge-base から HEAD までに変わったファイルのうち、paths に一致し exclude_paths に一致しないものが1つでもあれば該当。change_types があれば、その変更種別（added / modified / deleted / renamed）のファイルだけを見る。リネームは削除として数えず、リネーム前とリネーム後の両方のパスで照合する。",
+      "evaluated_by": ["planner", "check-gate"]
+    },
+    "changed_lines": {
+      "description": "paths に一致する変更ファイルの差分行のうち、lines で指定した行（added: 追加行 / removed: 削除行 / changed: 両方）の内容（先頭の +/- を除く）が pattern に一致すれば該当。",
+      "evaluated_by": ["planner", "check-gate"]
+    },
+    "json_keys": {
+      "description": "paths に一致する変更ファイル（JSON）を比較元と作業ブランチの両方でパースし、トップレベルの json_keys の値を比べる。json_change が any なら、値が少しでも違えば該当（キーの追加・削除も含む）。added_or_changed なら、値のオブジェクトの中のエントリが追加された、または値が変わったときだけ該当し、削除だけなら該当しない。",
+      "evaluated_by": ["planner", "check-gate"]
+    },
+    "count": {
+      "description": "metrics に定義した値を threshold と compare で比べ、成り立てば該当。threshold_from があれば、タスクのメタデータのその値を threshold より優先する。",
+      "evaluated_by": ["planner", "check-gate"]
+    },
+    "spec_link": {
+      "description": "paths に一致し exclude_paths に一致しない変更ファイル F のそれぞれについて、タスクIssueの本文にパスが書かれた仕様書（spec_paths に一致するもの）のうち、比較元の時点で status が allowed_statuses のどれかで、かつ比較元の時点の本文に F のパスが書かれているものが1つもなければ該当。作業ブランチ側の status は見ない。",
+      "evaluated_by": ["planner", "check-gate"]
+    },
+    "issue_section": {
+      "description": "タスクIssueの本文で、行頭が section で始まる見出しのセクション（次の同じレベル以上の見出しまで）の各行を pattern と照合する。match が absent なら、一致する行が1つもない（セクション自体がない場合を含む）ときに該当。",
+      "evaluated_by": ["planner", "check-gate"]
+    },
+    "command": {
+      "description": "実行しようとしているコマンド行（1行）が pattern に一致すれば該当。ファイルの差分には現れない操作のためのルールで、判定スクリプト（check-gate）は評価しない。計画時に Planner が照合し、将来の PreToolUse フックでも使う。",
+      "evaluated_by": ["planner", "pre-tool-use-hook"]
+    }
+  },
+  "metrics": {
+    "changed_files": "比較元との merge-base からの `git diff --numstat` に出るファイル数。count ルールに paths があれば、それに一致するファイルだけを数える。package-lock.json も含める。",
+    "changed_lines": "比較元との merge-base からの `git diff --numstat` の追加行数と削除行数の合計。バイナリファイルは0行として数える。package-lock.json も含める。",
+    "failed_attempt": "最新のprogressスナップショットの attempt。status が failed でなければ 0 とする。",
+    "consecutive_ci_failures": "作業ブランチで完了した ci.yml の実行を新しい順に見て、conclusion が failure の実行が先頭から何件続いているか。取得は呼び出し側が行い、判定スクリプトには数値で渡してよい。",
+    "review_runs": "作業ブランチの PR で claude-code-review.yml が実行された回数（`gh run list --workflow claude-code-review.yml --branch <ブランチ>`）。PRを作る前の push は数えない。判定は push の前に行う。取得は呼び出し側が行い、判定スクリプトには数値で渡してよい。"
+  },
+  "categories": {
+    "irreversible": {
+      "title": "不可逆・破壊的",
+      "rules": [
+        {
+          "id": "irreversible.ci-hooks-settings",
+          "summary": "CIのワークフロー・Gitフック・Claude Codeの設定を変更する",
+          "check": "changed_paths",
+          "paths": [".github/workflows/**", ".githooks/**", ".claude/settings.json"],
+          "rationale": "CI・main保護のフック・エージェントの権限設定は、壊れると以後のすべての変更の検証が効かなくなる。マージ後に誤りに気づいても、その間に入った変更は検証されていない。",
+          "human_check": [
+            "変更後も PR と main へのpushで `npm run check` が実行されるか",
+            "pre-push フックが main への直接pushを拒否したままか",
+            "settings.json の deny が減っていないか、allow に破壊的なコマンドが増えていないか"
+          ]
+        },
+        {
+          "id": "irreversible.dependency-entries",
+          "summary": "package.json の依存を追加・更新する",
+          "check": "json_keys",
+          "paths": ["package.json"],
+          "json_keys": ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies", "overrides"],
+          "json_change": "added_or_changed",
+          "rationale": "依存の追加・更新はサプライチェーンの入口になる。インストール時にスクリプトが実行されうるため、取り込んだ後では取り消せない。削除だけなら新しいコードは入らないので対象外。",
+          "human_check": [
+            "追加・更新したパッケージ名が正しいか（タイポスクワッティングでないか）",
+            "公開元・メンテナンス状況・ダウンロード数が妥当か",
+            "その依存を足す必要が本当にあるか（標準APIや既存の依存で足りないか）"
+          ]
+        },
+        {
+          "id": "irreversible.lockfile",
+          "summary": "package-lock.json を変更する",
+          "check": "changed_paths",
+          "paths": ["package-lock.json"],
+          "rationale": "`npm update` のように、package.json を変えずに間接的な依存だけが更新される場合を拾うため。ロックファイルの変更は、実際にインストールされるコードの変更を意味する。",
+          "human_check": [
+            "どのパッケージのバージョンが変わったか（`git diff` で resolved / version を確認する）",
+            "意図しないパッケージの追加・更新が紛れていないか"
+          ]
+        },
+        {
+          "id": "irreversible.file-deletion",
+          "summary": "ファイルを削除する差分を含む",
+          "check": "changed_paths",
+          "paths": ["**"],
+          "change_types": ["deleted"],
+          "rationale": "削除はマージ後に気づきにくく、他のファイルやドキュメントからの参照が切れる。リネームは中身が残るので対象外。",
+          "human_check": [
+            "削除したファイルが本当に不要か",
+            "削除したファイルを参照しているコード・ドキュメント・設定が残っていないか"
+          ]
+        },
+        {
+          "id": "irreversible.repository-settings",
+          "summary": "ruleset などリポジトリ設定を変更するコマンドを実行する",
+          "check": "command",
+          "pattern": "^gh\\s+api\\b(?=.*(?:-X|--method)[\\s=]*(?:POST|PUT|PATCH|DELETE)\\b)(?=.*(?:/rulesets\\b|/branches/[^\\s]+/protection\\b|/actions/permissions\\b|/collaborators\\b|/hooks\\b|/environments\\b))|^gh\\s+repo\\s+edit\\b(?!.*--visibility)|^gh\\s+(?:secret|variable)\\s+(?:set|delete)\\b",
+          "rationale": "リポジトリ設定はファイルの差分に残らず、PRのレビューも経ない。ruleset やブランチ保護を緩めると、main の保護そのものが外れる。公開範囲の変更（`gh repo edit --visibility`）とブランチの削除は禁止なので、このルールには含めない。",
+          "human_check": [
+            "変更する設定と、変更前後の値",
+            "ruleset `protect-main` やブランチ保護を緩める変更になっていないか",
+            "変更を元に戻す手順が分かっているか"
+          ]
+        }
+      ]
+    },
+    "spec_ambiguity": {
+      "title": "仕様の曖昧さ",
+      "rules": [
+        {
+          "id": "spec_ambiguity.src-without-approved-spec",
+          "summary": "src の変更に対応する承認済みの仕様書がない",
+          "check": "spec_link",
+          "paths": ["src/**"],
+          "exclude_paths": ["src/**/*.test.ts"],
+          "spec_paths": ["docs/specs/*.md"],
+          "allowed_statuses": ["approved", "implemented"],
+          "rationale": "受け入れ条件を人が確定していない実装は、AIが仕様を推測して決めることになる（docs/README.md「仕様は実装の前に書く」）。status を比較元で見るのは、同じPRで draft を implemented に書き換えて通す抜け道を防ぐため。",
+          "human_check": [
+            "変更に対応する仕様書が存在し、受け入れ条件が確定しているか",
+            "仕様書がないなら、実装を止めて仕様の下書きから始めるか",
+            "タスクIssueに仕様書のパスを書き忘れているだけではないか"
+          ]
+        },
+        {
+          "id": "spec_ambiguity.acceptance-not-checkbox",
+          "summary": "タスクIssueの受け入れ条件がチェックボックス形式で書かれていない",
+          "check": "issue_section",
+          "section": "## 受け入れ条件",
+          "pattern": "^\\s*-\\s\\[[ x]\\]\\s",
+          "match": "absent",
+          "rationale": "チェックボックスにできない受け入れ条件は、完了を機械的に判定できない。完了の判断が会話中の解釈に依存する。",
+          "human_check": [
+            "受け入れ条件を、テストや grep で確認できる粒度のチェックリストに書き直せるか",
+            "書き直せないなら、何をもって完了とするかを人が決める"
+          ]
+        }
+      ]
+    },
+    "failure_threshold": {
+      "title": "失敗の閾値",
+      "rules": [
+        {
+          "id": "failure_threshold.max-attempts",
+          "summary": "同じタスクの試行が max_attempts 回失敗した",
+          "check": "count",
+          "metric": "failed_attempt",
+          "compare": ">=",
+          "threshold": 3,
+          "threshold_from": "max_attempts",
+          "rationale": "同じやり方で失敗を繰り返しても利用枠を消費するだけで、前提（仕様・環境・タスクの分け方）が間違っている可能性が高い。1回の試行の中で check を直して再実行するループは数えない（試行の数え方は .claude/harness/conventions.md の progressスナップショットに従う）。",
+          "human_check": [
+            "progressスナップショットの last_failure が毎回同じ原因か",
+            "タスクの分け方・受け入れ条件・前提となる依存タスクに問題がないか",
+            "続けるなら、何を変えて再試行するか（max_attempts を増やすかを含む）"
+          ]
+        },
+        {
+          "id": "failure_threshold.consecutive-ci-failures",
+          "summary": "CIが2回続けて赤",
+          "check": "count",
+          "metric": "consecutive_ci_failures",
+          "compare": ">=",
+          "threshold": 2,
+          "rationale": "ローカルで `npm run check` が通るのにCIで続けて落ちるなら、環境差などローカルでは直せない原因の可能性が高い。push を繰り返すと、そのたびに PR のレビューも起動する。",
+          "human_check": [
+            "CIのログで、2回とも同じ原因で落ちているか",
+            "ローカルとCIの差（Nodeのバージョン・`npm ci`・OSなど）が原因でないか"
+          ]
+        }
+      ]
+    },
+    "risk_cost": {
+      "title": "リスク・コスト",
+      "rules": [
+        {
+          "id": "risk_cost.changed-files",
+          "summary": "変更ファイル数が8を超える",
+          "check": "count",
+          "metric": "changed_files",
+          "compare": ">",
+          "threshold": 8,
+          "rationale": "CLAUDE.md の「1つのPRで1つのことだけを行う」を超えている可能性が高く、人のレビューの負担も大きい。",
+          "human_check": [
+            "複数の目的の変更が混ざっていないか",
+            "PRを分けられないか"
+          ]
+        },
+        {
+          "id": "risk_cost.changed-lines",
+          "summary": "追加・削除の合計が300行を超える",
+          "check": "count",
+          "metric": "changed_lines",
+          "compare": ">",
+          "threshold": 300,
+          "rationale": "差分が大きいと、人のレビューで見落としが増える。",
+          "human_check": [
+            "生成物やロックファイルなど、レビュー不要な行が大半を占めていないか",
+            "PRを分けられないか"
+          ]
+        },
+        {
+          "id": "risk_cost.multiple-specs",
+          "summary": "docs/specs/ を2ファイル以上変更する",
+          "check": "count",
+          "metric": "changed_files",
+          "paths": ["docs/specs/*.md"],
+          "compare": ">=",
+          "threshold": 2,
+          "rationale": "仕様書は1機能＝1ファイル（docs/README.md）。複数の仕様に同時に触れるのは、1つのPRで複数の機能を変えているか、仕様どうしの整合を人が判断すべき変更である。",
+          "human_check": [
+            "変更した仕様書どうしが1つの目的でまとまっているか",
+            "status の変更が実装と合っているか"
+          ]
+        },
+        {
+          "id": "risk_cost.review-runs",
+          "summary": "1タスクのpushが5回を超える",
+          "check": "count",
+          "metric": "review_runs",
+          "compare": ">=",
+          "threshold": 5,
+          "rationale": "PR への push のたびに Claude Code Review が起動し、利用枠を消費する。判定は push の前に行い、実行済みが5回以上なら6回目の push の前に止める（超えてから止めると、6回目の利用枠をすでに使っているため）。",
+          "human_check": [
+            "push が増えた原因（CIの失敗・レビュー指摘への対応・小刻みなpush）",
+            "残りの修正をまとめて1回の push にできるか"
+          ]
+        }
+      ]
+    },
+    "security_boundary": {
+      "title": "セキュリティ境界",
+      "rules": [
+        {
+          "id": "security_boundary.env-and-secret-references",
+          "summary": "差分の追加行で .env・環境変数・Actionsのsecrets を参照する",
+          "check": "changed_lines",
+          "paths": ["**"],
+          "lines": "added",
+          "pattern": "(?:^|[^\\w.])\\.env(?:\\.[\\w-]+)?\\b|\\bprocess\\.env\\b|\\bsecrets\\.[A-Za-z_]",
+          "rationale": "認証情報の読み取り口を増やす変更は、漏洩経路になりうる。`.env` そのものを作る・コミットするのは禁止なので、このルールは参照の追加だけを対象にする。",
+          "human_check": [
+            "参照している値が本当に必要か",
+            "値をログ・エラーメッセージ・PRのコメントに出力していないか",
+            "ワークフローで secrets を使うなら、その job の permissions が最小か"
+          ]
+        },
+        {
+          "id": "security_boundary.key-file-references",
+          "summary": "差分の追加行で鍵ファイルを参照する",
+          "check": "changed_lines",
+          "paths": ["**"],
+          "lines": "added",
+          "pattern": "\\.(?:pem|p12|pfx)\\b|\\bid_(?:rsa|ed25519)\\b|[\"'`][^\"'`\\s]*\\.key[\"'`]",
+          "rationale": "鍵ファイルの読み取り口を増やす変更は、漏洩経路になりうる。鍵ファイルそのものを作る・コミットするのは禁止なので、このルールは参照の追加だけを対象にする。*.key は `obj.key` のようなコードに誤って当たるため、引用符で囲まれたファイル名に限る。",
+          "human_check": [
+            "鍵ファイルを読む必要が本当にあるか",
+            "鍵の中身をログや出力に出していないか"
+          ]
+        },
+        {
+          "id": "security_boundary.workflow-permissions",
+          "summary": "ワークフローの permissions を変更する",
+          "check": "changed_lines",
+          "paths": [".github/workflows/**"],
+          "lines": "changed",
+          "pattern": "^\\s*permissions\\s*:|^\\s*[a-z-]+\\s*:\\s*(?:read|write|none)\\s*$",
+          "rationale": "GITHUB_TOKEN の権限を広げると、ワークフローから書き込みができるようになる。permissions の行を消すと既定の広い権限に戻るため、削除行も対象にする。",
+          "human_check": [
+            "変更後の permissions が、その job に必要な最小限か",
+            "write 権限が増えていないか"
+          ]
+        },
+        {
+          "id": "security_boundary.settings-permissions-hooks",
+          "summary": ".claude/settings.json の permissions・hooks を変更する",
+          "check": "json_keys",
+          "paths": [".claude/settings.json"],
+          "json_keys": ["permissions", "hooks"],
+          "json_change": "any",
+          "rationale": "エージェントが確認なしで実行できるコマンドと、自動で実行されるフックが変わる。deny の削除はガードレールを外すことになる。",
+          "human_check": [
+            "deny から消えたエントリがないか",
+            "allow に足したコマンドが、破壊的な操作や禁止事項に当たらないか",
+            "フックが実行するコマンドの中身"
+          ]
+        },
+        {
+          "id": "security_boundary.agent-tools",
+          "summary": "サブエージェントの tools 行を変更・追加する",
+          "check": "changed_lines",
+          "paths": [".claude/agents/*.md"],
+          "lines": "changed",
+          "pattern": "^tools\\s*:",
+          "rationale": "サブエージェントが使えるツール（編集・シェル実行など）が変わる。新しいエージェントを作るときも tools 行が追加されるので該当する。",
+          "human_check": [
+            "その役割に必要な最小限のツールか（レビュー役・計画役に Edit / Write が入っていないか）",
+            "Bash を与えるなら、何のコマンドに使うかが本文に書かれているか"
+          ]
+        },
+        {
+          "id": "security_boundary.auth-user-code",
+          "summary": "認証・ユーザーに関わるコードを変更する",
+          "check": "changed_paths",
+          "paths": [
+            "src/user*.ts",
+            "src/**/*auth*",
+            "src/**/*session*",
+            "src/**/*token*",
+            "src/**/*password*",
+            "src/**/*credential*",
+            "src/**/*auth*/**",
+            "src/**/*session*/**",
+            "src/**/*token*/**",
+            "src/**/*password*/**",
+            "src/**/*credential*/**"
+          ],
+          "rationale": "ユーザーの識別や認証の不備は、他人になりすます・他人のデータを見るといった被害に直結する。テストを弱める変更も境界の変更になるため、テストファイルも含める。ファイル名だけでなく、src/auth/ のようなディレクトリ名に含まれる場合も対象にする。",
+          "human_check": [
+            "ユーザーの識別・認可の条件が緩んでいないか",
+            "テストケースが削除・緩和されていないか"
+          ]
+        },
+        {
+          "id": "security_boundary.guardrails",
+          "summary": "ハーネスの基準・判定スクリプト・エージェントのルール・フックを変更する",
+          "check": "changed_paths",
+          "paths": [".claude/harness/**", "scripts/harness/**", "CLAUDE.md", ".claude/hooks/**"],
+          "rationale": "gate の基準、判定スクリプト、エージェントが従うルールと禁止事項、編集後の自動検査そのものが変わる。gate: false のタスクでこれらを緩めても検出できるようにするため。",
+          "human_check": [
+            "gate の基準や判定を緩める変更になっていないか（ルールの削除、閾値の引き上げ、パスの除外）",
+            "CLAUDE.md の禁止事項が減っていないか",
+            "フックが引き続き実行されるか"
+          ]
+        }
+      ]
+    }
+  }
+}
