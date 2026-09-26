@@ -84,6 +84,7 @@ max_attempts: 3
 | `gate` | メタデータが `gate: true` であることの写し | Issueを作る人・AI |
 | `risk:low` / `risk:medium` / `risk:high` | メタデータの `risk` の写し。1つだけ付ける | Issueを作る人・AI |
 | `gate:approved` | gateを人が承認した（後述） | **人だけ** |
+| `gate:waiting` | オーケストレーターが止まり、人の判断を待っている（後述の「通知と再開」） | オーケストレーター（`scripts/harness/notify.js`）が付け、人が外す |
 
 - `gate` と `risk:*` はメタデータの写しで、正本はメタデータ。食い違ったら、メタデータ不正として扱い、自動では進めない。
 - メタデータを書き換えたら、同時にラベルも合わせる。
@@ -203,3 +204,27 @@ last_failure: npm run check の typecheck で失敗（src/group.ts の型エラ�
 
 - 進捗は `### 進捗` 以下にチェックリストで書く（Issueの「やること」に対応させる）。
 - タスクの完了はIssueが closed になったことで判定する。スナップショットに完了状態は持たせない。
+
+## 通知と再開
+
+オーケストレーター（`/next-task`）が止まったときと、タスクのPRができたときに、人へ通知する。再開は人が手動で行う。
+
+決定の経緯: Issue #54（T10）のgate承認コメント（2026-09-26）。案A（Issueへのコメント＋ラベル＋GitHub標準の通知）で始め、Slack などへの外部送信（案B）は、不足が分かったら別タスクにする。
+
+### 通知の手段
+
+- `scripts/harness/notify.js` が、gh で該当Issueにコメントを書く。止まったイベントでは `gate:waiting` ラベルも付ける。
+- 人には GitHub標準の通知（メール・モバイル）で届く。新しい認証情報と外部送信は使わない（WebhookのURLなどをリポジトリに置かない）。
+- コメントの1行目はマーカー `<!-- harness:notify event=<イベント> -->`（`TASK_DONE` は `<!-- harness:notify event=TASK_DONE pr=#<PR番号> -->`）。最新の通知コメントが同じマーカーで、止まったイベントなら `gate:waiting` ラベルも残っているときは、送信済みとして送らない。
+
+| イベント | きっかけ | 本文に書くこと | `gate:waiting` |
+| --- | --- | --- | --- |
+| `WAIT_GATE` | `next-task.js` の結果が `WAIT_GATE` | Issue番号とURL、メタデータの `gate_reasons`、再開の手順 | 付ける |
+| `ESCALATE` | `next-task.js` の結果が `ESCALATE` | Issue番号とURL、`attempt` と `max_attempts`、最新のprogressスナップショットの `last_failure`、再開の手順 | 付ける |
+| `TASK_DONE` | `RUN` で Implementer がPRを作った | Issue番号とURL、PR番号、次の手順（レビューとマージ） | 付けない |
+
+### 再開の手順
+
+- `WAIT_GATE`: 人が `## gate承認` コメントを書き、`gate:approved` ラベルを付け、`gate:waiting` ラベルを外してから、`/next-task` を手動で実行する。
+- `ESCALATE`: 人が続けるか・Issueを分け直すかを決めてIssueに記録し（必要なら `max_attempts` を書き換え）、`gate:waiting` ラベルを外す。着手済みのタスクはオーケストレーターが再開しないため、続けるときは Implementer に Issue番号を渡して手動で呼ぶ。
+- `TASK_DONE`: 人がPRをレビューしてマージし、`/next-task` を手動で実行する。

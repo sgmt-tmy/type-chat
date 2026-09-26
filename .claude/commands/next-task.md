@@ -23,15 +23,29 @@ node scripts/harness/next-task.js --issues "$DIR/issues.json" --branches "$DIR/b
 
 | `result` | すること |
 | --- | --- |
-| `RUN` | `role`（今は常に `implementer`）のサブエージェントを、Issue `#<issue>` を渡して1回呼ぶ。PRができたら、そのPR番号を渡して `verifier` を1回呼ぶ。両方の結果を報告して止まる |
-| `WAIT_GATE` | 止まる。Issue `#<issue>` が gate の承認待ち（`## gate承認` コメントと `gate:approved` ラベル）であることを報告する |
-| `ESCALATE` | 止まる。Issue `#<issue>` の試行回数が `max_attempts` に達したことと、最新のprogressスナップショットの `last_failure` を報告する |
+| `RUN` | `role`（今は常に `implementer`）のサブエージェントを、Issue `#<issue>` を渡して1回呼ぶ。PRができたら、そのPR番号を渡して `verifier` を1回呼ぶ。PRができていれば `TASK_DONE` を通知する（下の「3. 人に通知する」）。両方の結果を報告して止まる |
+| `WAIT_GATE` | `WAIT_GATE` を通知して止まる。Issue `#<issue>` が gate の承認待ち（`## gate承認` コメントと `gate:approved` ラベル）であることを報告する |
+| `ESCALATE` | `ESCALATE` を通知して止まる。Issue `#<issue>` の試行回数が `max_attempts` に達したことと、最新のprogressスナップショットの `last_failure` を報告する |
 | `BLOCKED` | 止まる。open のタスクが、依存の完了待ちか着手済み（作業中・レビュー待ち・人の判断待ち）しかないことを報告する |
 | `DONE` | 止まる。open のタスクがないことを報告する |
 | `ERROR` | 止まる。`errors` をそのまま報告する（循環依存・メタデータ不正・ラベルとの食い違い・同じ番号のブランチが2本以上など） |
 
 - どの結果でも、`attention` に並んだタスク（ほかの `WAIT_GATE` / `ESCALATE`）を報告に含める。
 - 報告の最初の行は、スクリプトの `summary`（例: `RUN #53 (implementer)`）にする。
+
+## 3. 人に通知する
+
+`scripts/harness/notify.js` で、該当Issueにコメント（止まったときは `gate:waiting` ラベルも）を付け、GitHub標準の通知で人に知らせる。通知の手段と再開の手順は `.claude/harness/conventions.md` の「通知と再開」。
+
+```bash
+node scripts/harness/notify.js --event WAIT_GATE --issue <issue>
+node scripts/harness/notify.js --event ESCALATE --issue <issue>
+node scripts/harness/notify.js --event TASK_DONE --issue <issue> --pr <PR番号>
+```
+
+- 通知するのは、2. の結果で選ばれた1つのIssueだけ。`attention` のタスクには通知しない（それぞれが選ばれたときに通知する）。
+- 出力は1行のJSON（`{"sent", "skipped", "actions", "errors"}`）。`skipped: true` は送信済み（同じ通知がすでにある）という意味で、失敗ではない。
+- 終了コードが 1 なら、`errors` を報告に含める。通知を送り直すために別の手段（`gh api` など）は使わない。
 
 ## 禁止事項
 
