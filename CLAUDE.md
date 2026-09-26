@@ -27,11 +27,21 @@ npm run setup:hooks # Gitフック（main保護）を有効化する。クロー
 
 ## 作業の進め方
 
-1. `main` から作業ブランチを切る（`feat/xxx`、`fix/xxx`）
-2. 実装とテストを書く
-3. `npm run check` を実行し、**通るまで自分で直す**
-4. コミットし、push する
-5. PRを作る（`.github/PULL_REQUEST_TEMPLATE.md` の項目を必ずすべて埋める。push・PR作成は確認なしで進めてよいが、テンプレートの記入は省略しない）
+1 Issue = 1 ブランチ = 1 PR。すべての作業をIssueに結びつける。詳細（着手済みの判定・gate判定結果の書式）は `.claude/harness/conventions.md` の「ブランチとPR」を参照。
+
+1. 作業するIssueを確認する。依頼にIssue番号がなければ、`.github/ISSUE_TEMPLATE/task.md` からIssueを作る（確認は不要。作ったIssueのURLは報告に含める）
+2. gateを確認する。Issueのメタデータが `gate: true`、または `gate` ラベルがあれば gate のタスク。gate のタスクは、Issueに `gate:approved` ラベルが付くまでブランチを作らない（ブランチを作る直前に `gh issue view <番号> --json labels` で確認する）
+3. `main` から作業ブランチを切る。名前は `feat/<Issue番号>-<slug>`、バグ修正は `fix/<Issue番号>-<slug>`（仕様書の下書き・ドキュメント・設定の変更も `feat/`）
+   - 形式は `^(feat|fix)/([1-9][0-9]*)-([a-z0-9]+(?:-[a-z0-9]+)*)$`（slug は英小文字・数字・ハイフン）
+   - 同じIssueにブランチを2本作らない。再試行は同じブランチ（PRがあればそのPR）で続ける
+   - 仕様書の下書きは、実装とは別のIssueにする
+4. 実装とテストを書く
+5. `npm run check` を実行し、**通るまで自分で直す**
+6. コミットし、push する
+7. PRを作る（`.github/PULL_REQUEST_TEMPLATE.md` の項目を必ずすべて埋める。push・PR作成は確認なしで進めてよいが、テンプレートの記入は省略しない）
+   - 「関連Issue」欄に `Closes #<Issue番号>` を1行だけ書く。番号はブランチ名の番号と一致させる
+   - 「gate判定結果」欄が `task_gate: false` かつ `diff_check: gate` になるなら、PRを作らずに人に上げる
+   - PRがマージされずに閉じられたら、新しいPRは作らずに人に上げる
 
 ## やってはいけないこと
 
@@ -46,7 +56,7 @@ npm run setup:hooks # Gitフック（main保護）を有効化する。クロー
 ## 実装依頼のデフォルト方針
 
 進め方の指示がない実装依頼は、以下を既定動作とする：
-関連する仕様書（`docs/specs/`・`docs/decisions/`）を読む → ブランチを切る → 実装とテストを書く → `npm run check` が通るまで直す → push → PR作成（テンプレートの項目を埋める）→ URLを報告。
+Issueを確認する（なければ作る）→ 関連する仕様書（`docs/specs/`・`docs/decisions/`）を読む → gateを確認する → ブランチを切る → 実装とテストを書く → `npm run check` が通るまで直す → push → PR作成（テンプレートの項目を埋める）→ URLを報告（Issueを作った場合はそのURLも）。
 
 ただし、依頼文で「PRは作らず、コミットまでにして」のように範囲が明示された場合はそれに従う。
 
