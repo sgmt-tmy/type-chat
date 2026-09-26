@@ -14,4 +14,8 @@ describe("createUser", () => {
   it("空文字の名前はエラーにする", () => {
     expect(() => createUser("   ")).toThrow();
   });
+
+  it("[harness-dryrun T11c] 必ず失敗するテスト（Issue #72の検証用）", () => {
+    expect(1).toBe(2);
+  });
 });
