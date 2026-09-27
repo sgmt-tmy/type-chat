@@ -13,6 +13,7 @@
 | ハーネスのスクリプトとテスト | `scripts/harness/`（既存の `scripts/check-specs.js` と同じく、`npm run check` の対象になる場所） |
 | ハーネスタスクのIssueテンプレート | `.github/ISSUE_TEMPLATE/harness-task.md` |
 | progressスナップショット | 該当Issueへのコメント（後述） |
+| usage記録 | 該当Issueへのコメント（後述。`.claude/hooks/record-subagent-usage.js` が自動で書く） |
 
 - `docs/` には置かない。`docs/` はアプリの文書（仕様書・アプリのADR）の場所で、ハーネスはアプリの仕様ではないため（`docs/README.md` の区分を維持する）。
 
@@ -204,6 +205,67 @@ last_failure: npm run check の typecheck で失敗（src/group.ts の型エラ�
 
 - 進捗は `### 進捗` 以下にチェックリストで書く（Issueの「やること」に対応させる）。
 - タスクの完了はIssueが closed になったことで判定する。スナップショットに完了状態は持たせない。
+
+## usage記録
+
+ハーネスのコスト・コンテキスト効率を追うため、ロールごとの使用量（トークン数・所要時間・モデル名）を、該当Issueへのコメントとして残す。
+
+決定の経緯: Issue #79（T15）のgate承認コメント（2026-09-27）。詳細は Vault側 ADR 0008。エージェント自身に書き写させると、正確な累積使用量が分からないうえ、記録のためのツール呼び出し・出力トークンが全タスクに恒久的に増えるため、`SubagentStop` フックで機械的に記録する。
+
+### 書くタイミングと書く人
+
+- サブエージェントが終了したとき、`SubagentStop` フック（`.claude/hooks/record-subagent-usage.js`、`.claude/settings.json` の `hooks.SubagentStop` で登録）が自動で書く。エージェントも人も手で書かない。
+- 集計元は、フックの入力の `agent_transcript_path`（サブエージェントのトランスクリプト、JSONL）。assistant 行の `message.usage` を、`message.id` ごとに最後の行だけ数えて合計する（1つの応答が複数行に分かれて記録されるため）。`duration_sec` は、トランスクリプトの最初と最後の `timestamp` の差（秒、四捨五入）。
+- 同じサブエージェントが再開されて再び終了した場合は、そのたびに累積値で書く。`agent_id` が同じコメントは、最新のものを正とする。
+- フックは失敗しても（トランスクリプトが読めない、`gh` のエラー、書き込み先を特定できない）終了コード0で終わり、サブエージェントの実行を止めない。記録は欠けることがある。
+
+### 対象ロールと書く場所
+
+フックの入力の `agent_type`（`.claude/agents/*.md` の `name`）で判定する。
+
+| ロール | 書く場所 | 特定の方法 |
+| --- | --- | --- |
+| `planner` | 計画対象の親Issue（`harness-epic`） | 依頼文（最初のユーザーメッセージ）で最初に出てくる `Issue #N` か `.../issues/N` |
+| `implementer` | タスクのIssue | 依頼文で最初に出てくる `Issue #N` か `.../issues/N` |
+| `spec-reviewer` | レビュー対象のPRが `Closes #N` で紐づくIssue | 依頼文で最初に出てくる `PR #N` か `.../pull/N` を読み、そのPR本文の `Closes #N` 行 |
+
+- 依頼文から書き込み先を特定できなければ、書かない。そのため、これらのロールを呼び出すときは、依頼文の最初の参照を書き込み先のIssue（spec-reviewerはPR）にする。
+- `verifier` と CI の `claude-review` は対象外（Verifierは推定コストが小さい。`claude-review` は GitHub Actions 上の別プロセスで動き、フックが使えない）。
+
+### 書式
+
+1行目にマーカー `<!-- harness:usage -->` を置く。`<!-- harness:progress -->` とは別のマーカーで、`scripts/harness/next-task.js` の `latestProgress` や `notify.js` はこのコメントを読まない。
+
+````markdown
+<!-- harness:usage -->
+## usage記録
+```yaml
+role: implementer
+agent_id: a05a5d93e5d430692
+models: [claude-sonnet-5]
+input_tokens: 120
+output_tokens: 15230
+cache_read_tokens: 2104377
+cache_creation_tokens: 98512
+duration_sec: 372
+```
+
+SubagentStop フックによる自動記録（`.claude/hooks/record-subagent-usage.js`）。
+````
+
+| キー | 値 | 意味 |
+| --- | --- | --- |
+| `role` | `planner` / `implementer` / `spec-reviewer` | 終了したサブエージェントのロール |
+| `agent_id` | 文字列 | サブエージェントの識別子（フックの入力の `agent_id`） |
+| `models` | `[<モデル名>, ...]` | 応答に使われたモデル |
+| `input_tokens` | 0以上の整数 | `usage.input_tokens` の合計 |
+| `output_tokens` | 0以上の整数 | `usage.output_tokens` の合計 |
+| `cache_read_tokens` | 0以上の整数 | `usage.cache_read_input_tokens` の合計 |
+| `cache_creation_tokens` | 0以上の整数 | `usage.cache_creation_input_tokens` の合計 |
+| `duration_sec` | 0以上の整数 | 開始から終了までの経過秒数 |
+
+- 書き出すのは上の値だけ。依頼文やトランスクリプトの内容は書き出さない（書き込み先の特定にだけ使う）。
+- `gh` は実行した人のアカウントで動く（通知を届ける必要がないため、`notify.js` のボットアカウントは使わない）。
 
 ## 通知と再開
 
