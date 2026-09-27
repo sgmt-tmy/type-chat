@@ -2,6 +2,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
+import { buildUsageComment } from "../../.claude/hooks/record-subagent-usage.js";
 import { decideNextTask, latestProgress, parseLsRemote, runCli } from "./next-task.js";
 
 type Comment = { body: string; createdAt: string; id?: string };
@@ -355,6 +356,24 @@ describe("latestProgress", () => {
 
   it("status も読む", () => {
     expect(latestProgress([progress(2, "failed")])).toEqual({ attempt: 2, status: "failed" });
+  });
+
+  it("後から書かれた usage記録（<!-- harness:usage -->）は読まない", () => {
+    const usage = buildUsageComment("implementer", "abc", {
+      input_tokens: 1,
+      output_tokens: 2,
+      cache_read_tokens: 3,
+      cache_creation_tokens: 4,
+      duration_sec: 5,
+      models: ["claude-sonnet-5"],
+    });
+    expect(
+      latestProgress([
+        progress(1, "pr_open", "2026-09-26T00:00:00Z"),
+        { body: usage, createdAt: "2026-09-26T00:01:00Z" },
+      ]),
+    ).toEqual({ attempt: 1, status: "pr_open" });
+    expect(latestProgress([{ body: usage, createdAt: "2026-09-26T00:01:00Z" }])).toEqual({ attempt: 0 });
   });
 });
 
