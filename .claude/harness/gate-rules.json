@@ -188,11 +188,11 @@
       "rules": [
         {
           "id": "risk_cost.changed-files",
-          "summary": "変更ファイル数が8を超える",
+          "summary": "変更ファイル数が15を超える",
           "check": "count",
           "metric": "changed_files",
           "compare": ">",
-          "threshold": 8,
+          "threshold": 15,
           "rationale": "CLAUDE.md の「1つのPRで1つのことだけを行う」を超えている可能性が高く、人のレビューの負担も大きい。",
           "human_check": [
             "複数の目的の変更が混ざっていないか",
@@ -201,11 +201,11 @@
         },
         {
           "id": "risk_cost.changed-lines",
-          "summary": "追加・削除の合計が300行を超える",
+          "summary": "追加・削除の合計が800行を超える",
           "check": "count",
           "metric": "changed_lines",
           "compare": ">",
-          "threshold": 300,
+          "threshold": 800,
           "rationale": "差分が大きいと、人のレビューで見落としが増える。",
           "human_check": [
             "生成物やロックファイルなど、レビュー不要な行が大半を占めていないか",
