@@ -48,8 +48,7 @@
     "changed_files": "比較元との merge-base からの `git diff --numstat` に出るファイル数。count ルールに paths があれば、それに一致するファイルだけを数える。package-lock.json も含める。",
     "changed_lines": "比較元との merge-base からの `git diff --numstat` の追加行数と削除行数の合計。バイナリファイルは0行として数える。package-lock.json も含める。",
     "failed_attempt": "最新のprogressスナップショットの attempt。status が failed でなければ 0 とする。",
-    "consecutive_ci_failures": "作業ブランチで完了した ci.yml の実行を新しい順に見て、conclusion が failure の実行が先頭から何件続いているか。取得は呼び出し側が行い、判定スクリプトには数値で渡してよい。",
-    "review_runs": "作業ブランチの PR で claude-code-review.yml が実行された回数（`gh run list --workflow claude-code-review.yml --branch <ブランチ>`）。PRを作る前の push は数えない。判定は push の前に行う。取得は呼び出し側が行い、判定スクリプトには数値で渡してよい。"
+    "consecutive_ci_failures": "作業ブランチで完了した ci.yml の実行を新しい順に見て、conclusion が failure の実行が先頭から何件続いているか。取得は呼び出し側が行い、判定スクリプトには数値で渡してよい。"
   },
   "categories": {
     "irreversible": {
@@ -225,19 +224,6 @@
           "human_check": [
             "変更した仕様書どうしが1つの目的でまとまっているか",
             "status の変更が実装と合っているか"
-          ]
-        },
-        {
-          "id": "risk_cost.review-runs",
-          "summary": "1タスクのpushが5回を超える",
-          "check": "count",
-          "metric": "review_runs",
-          "compare": ">=",
-          "threshold": 5,
-          "rationale": "PR への push のたびに Claude Code Review が起動し、利用枠を消費する。判定は push の前に行い、実行済みが5回以上なら6回目の push の前に止める（超えてから止めると、6回目の利用枠をすでに使っているため）。",
-          "human_check": [
-            "push が増えた原因（CIの失敗・レビュー指摘への対応・小刻みなpush）",
-            "残りの修正をまとめて1回の push にできるか"
           ]
         }
       ]

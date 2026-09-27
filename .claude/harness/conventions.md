@@ -230,7 +230,7 @@ last_failure: npm run check の typecheck で失敗（src/group.ts の型エラ�
 | `spec-reviewer` | レビュー対象のPRが `Closes #N` で紐づくIssue | 依頼文で最初に出てくる `PR #N` か `.../pull/N` を読み、そのPR本文の `Closes #N` 行 |
 
 - 依頼文から書き込み先を特定できなければ、書かない。そのため、これらのロールを呼び出すときは、依頼文の最初の参照を書き込み先のIssue（spec-reviewerはPR）にする。
-- `verifier` と CI の `claude-review` は対象外（Verifierは推定コストが小さい。`claude-review` は GitHub Actions 上の別プロセスで動き、フックが使えない）。
+- `verifier` は対象外（推定コストが小さい）。CIの`claude-review`は廃止済み（Vault側 ADR 0009）。
 
 ### 書式
 
@@ -292,4 +292,4 @@ Issue #55（T11）の通しの検証で、案Aのままでは通知が人に届�
 
 - `WAIT_GATE`: 人が `## gate承認` コメントを書き、`gate:approved` ラベルを付け、`gate:waiting` ラベルを外してから、`/next-task` を手動で実行する。
 - `ESCALATE`: 人が続けるか・Issueを分け直すかを決めてIssueに記録し（必要なら `max_attempts` を書き換え）、`gate:waiting` ラベルを外す。着手済みのタスクはオーケストレーターが再開しないため、続けるときは Implementer に Issue番号を渡して手動で呼ぶ。
-- `TASK_DONE`: 人はPRをレビューする際、`spec-reviewer`を呼び出してから判断する。CIの `claude-review`（PRごとに自動で動く一次スクリーニング）は内容の妥当性を保証しないため、`spec-reviewer`（人が呼び出す、内容の妥当性を見る正式なReviewer）の判断を経てからマージし、`/next-task` を手動で実行する。
+- `TASK_DONE`: 人はPRをレビューする際、`spec-reviewer`を呼び出してから判断する。`spec-reviewer`（人が呼び出す、内容の妥当性を見る正式なReviewer）の判断を経てからマージし、`/next-task` を手動で実行する。CIの`claude-review`（一次スクリーニング）は廃止済み（Vault側 ADR 0009。指摘が実際の修正につながった割合が低く、放置される実態もあったため）。
