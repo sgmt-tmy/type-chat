@@ -1,5 +1,5 @@
 ---
-status: draft        # draft / approved / implemented / deprecated
+status: approved
 updated: 2026-09-28
 ---
 
