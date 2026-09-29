@@ -309,56 +309,56 @@ Client Component。
 
 チャット画面（`src/app/groups/[groupId]/page.tsx`）
 
-- [ ] 利用者の Cookie がない状態でチャット画面を描画すると、`redirect("/start")` が呼ばれる
-- [ ] メンバーの利用者でチャット画面を描画すると、`h1` が1つだけあり、その文言がグループ名である
-- [ ] メンバーでない利用者でチャット画面を描画すると、`notFound()` が呼ばれる
-- [ ] 存在しないグループIDでチャット画面を描画すると、`notFound()` が呼ばれる
+- [x] 利用者の Cookie がない状態でチャット画面を描画すると、`redirect("/start")` が呼ばれる
+- [x] メンバーの利用者でチャット画面を描画すると、`h1` が1つだけあり、その文言がグループ名である
+- [x] メンバーでない利用者でチャット画面を描画すると、`notFound()` が呼ばれる
+- [x] 存在しないグループIDでチャット画面を描画すると、`notFound()` が呼ばれる
 
 ヘッダー（`src/components/chat-header.tsx`）
 
-- [ ] `ChatHeader` に、名前が「戻る」で `href` が `/` のリンクがある
-- [ ] `ChatHeader` に、名前が「設定」で `href` が `/groups/<groupId>/settings` のリンクがある
-- [ ] `ChatHeader` の `h1` の文言が `groupName` である
-- [ ] `ChatHeader` のリンクのクラスに `bg-primary` が含まれない
+- [x] `ChatHeader` に、名前が「戻る」で `href` が `/` のリンクがある
+- [x] `ChatHeader` に、名前が「設定」で `href` が `/groups/<groupId>/settings` のリンクがある
+- [x] `ChatHeader` の `h1` の文言が `groupName` である
+- [x] `ChatHeader` のリンクのクラスに `bg-primary` が含まれない
 
 メッセージ一覧（`src/components/message-list.tsx`）
 
-- [ ] `state: "loading"` の `MessageList` は、`Skeleton` を描画し、一覧の領域が `aria-busy="true"` で、「まだメッセージはありません」を描画しない
-- [ ] `state: "loaded"` で0件の `MessageList` は、`h2`「まだメッセージはありません」と `最初のメッセージを送ってみましょう` を描画する
-- [ ] 空状態の「メッセージを入力する」ボタンを押すと、`onStartWriting` が1回呼ばれる
-- [ ] 空状態の「メッセージを入力する」ボタンのクラスに `bg-primary` が含まれない
-- [ ] `state: "failed"` の `MessageList` は、`メッセージを読み込めませんでした` と「再読み込み」ボタンを描画し、ボタンを押すと `onRetry` が1回呼ばれる
-- [ ] `MessageList` にメッセージを3件渡すと、渡した順に3つの `li` が描画され、各行に本文が出る
-- [ ] 自分のメッセージの行のクラスに `justify-end` が含まれ、投稿者名が出ない
-- [ ] 他人のメッセージの行のクラスに `justify-start` が含まれ、その投稿者の `senderName` が出る
-- [ ] 各メッセージに、`dateTime` 属性が `sentAt` の `time` 要素があり、文言が `HH:mm` である
-- [ ] `formatMessageTime(new Date(2026, 8, 28, 9, 5).toISOString())` が `09:05` を返す
-- [ ] `formatMessageTime(new Date(2026, 8, 28, 23, 59).toISOString())` が `23:59` を返す
-- [ ] 本文の要素のクラスに `whitespace-pre-wrap` が含まれ、改行を含む本文が改行を保って（`textContent` に `\n` を含んで）描画される
-- [ ] `state` が `"loading"` から `"loaded"` に変わって一覧を描画すると、`window.scrollTo` が `{ top: document.documentElement.scrollHeight }` で呼ばれる
-- [ ] 最下部にいる状態（`innerHeight + scrollY >= scrollHeight - 80`）で `scroll` イベントの後に、他人の新着を末尾に足して再描画すると、`window.scrollTo` が呼ばれる
-- [ ] 最下部から離れた状態（`innerHeight + scrollY < scrollHeight - 80`）で `scroll` イベントの後に、他人の新着を末尾に足して再描画すると、`window.scrollTo` が呼ばれない
-- [ ] 最下部から離れた状態で、自分の新着を末尾に足して再描画すると、`window.scrollTo` が呼ばれる
-- [ ] 同じ `messages` のまま再描画しても、`window.scrollTo` が呼ばれない
+- [x] `state: "loading"` の `MessageList` は、`Skeleton` を描画し、一覧の領域が `aria-busy="true"` で、「まだメッセージはありません」を描画しない
+- [x] `state: "loaded"` で0件の `MessageList` は、`h2`「まだメッセージはありません」と `最初のメッセージを送ってみましょう` を描画する
+- [x] 空状態の「メッセージを入力する」ボタンを押すと、`onStartWriting` が1回呼ばれる
+- [x] 空状態の「メッセージを入力する」ボタンのクラスに `bg-primary` が含まれない
+- [x] `state: "failed"` の `MessageList` は、`メッセージを読み込めませんでした` と「再読み込み」ボタンを描画し、ボタンを押すと `onRetry` が1回呼ばれる
+- [x] `MessageList` にメッセージを3件渡すと、渡した順に3つの `li` が描画され、各行に本文が出る
+- [x] 自分のメッセージの行のクラスに `justify-end` が含まれ、投稿者名が出ない
+- [x] 他人のメッセージの行のクラスに `justify-start` が含まれ、その投稿者の `senderName` が出る
+- [x] 各メッセージに、`dateTime` 属性が `sentAt` の `time` 要素があり、文言が `HH:mm` である
+- [x] `formatMessageTime(new Date(2026, 8, 28, 9, 5).toISOString())` が `09:05` を返す
+- [x] `formatMessageTime(new Date(2026, 8, 28, 23, 59).toISOString())` が `23:59` を返す
+- [x] 本文の要素のクラスに `whitespace-pre-wrap` が含まれ、改行を含む本文が改行を保って（`textContent` に `\n` を含んで）描画される
+- [x] `state` が `"loading"` から `"loaded"` に変わって一覧を描画すると、`window.scrollTo` が `{ top: document.documentElement.scrollHeight }` で呼ばれる
+- [x] 最下部にいる状態（`innerHeight + scrollY >= scrollHeight - 80`）で `scroll` イベントの後に、他人の新着を末尾に足して再描画すると、`window.scrollTo` が呼ばれる
+- [x] 最下部から離れた状態（`innerHeight + scrollY < scrollHeight - 80`）で `scroll` イベントの後に、他人の新着を末尾に足して再描画すると、`window.scrollTo` が呼ばれない
+- [x] 最下部から離れた状態で、自分の新着を末尾に足して再描画すると、`window.scrollTo` が呼ばれる
+- [x] 同じ `messages` のまま再描画しても、`window.scrollTo` が呼ばれない
 
 チャット画面の本体（`src/components/chat-view.tsx`）
 
-- [ ] `ChatView` をマウントすると、`GET /api/groups/<groupId>/messages` が1回呼ばれ、`useLiveEvents` が1回だけ使われる
-- [ ] 最初の取得が終わるまで、`Skeleton` が描画される
-- [ ] 最初の取得に成功すると、応答のメッセージが描画される
-- [ ] 最初の取得が失敗すると、`toast.error` がその `message` で呼ばれ、`メッセージを読み込めませんでした` が描画される
-- [ ] 最初の取得の失敗の後に「再読み込み」を押すと、`GET` がもう1回呼ばれ、成功すれば一覧が描画される
-- [ ] この画面の `groupId` の `message.created` のハンドラを、`members` に含まれる投稿者のメッセージで呼ぶと、そのメッセージが一覧の末尾に投稿者の名前つきで描画される
-- [ ] 別の `groupId` の `message.created` のハンドラを呼んでも、一覧が変わらない
-- [ ] すでに一覧にある `id` の `message.created` のハンドラを呼んでも、そのメッセージが二重に描画されない
-- [ ] `sentAt` が一覧の末尾より前のメッセージの `message.created` を受け取ると、`sentAt` の昇順の位置に描画される
-- [ ] `members` にも一覧にもない投稿者の `message.created` を受け取ると、`GET` がもう1回呼ばれ、その応答の一覧（投稿者の名前つき）が描画される
-- [ ] 最初の取得が終わる前に `message.created` のハンドラを呼んでも、取得の後の一覧は応答の内容だけである
-- [ ] `onReconnect` を呼ぶと、`GET` がもう1回呼ばれ、新しい応答の一覧が描画される
-- [ ] 取り直しの応答を待っている間、表示中の一覧が残り、`Skeleton` に戻らない
-- [ ] 取り直しを2回続けて始め、2回目の応答が先に届いた後に1回目の応答が届いても、一覧が2回目の応答の内容のままである
-- [ ] 取り直しが失敗すると、`toast.error` がその `message` で呼ばれ、表示中の一覧が残る
-- [ ] `src/components/chat-view.tsx`・`src/components/message-list.tsx` の内容に、`setInterval` と `setTimeout` が含まれない（ファイルを読んで検査する）
+- [x] `ChatView` をマウントすると、`GET /api/groups/<groupId>/messages` が1回呼ばれ、`useLiveEvents` が1回だけ使われる
+- [x] 最初の取得が終わるまで、`Skeleton` が描画される
+- [x] 最初の取得に成功すると、応答のメッセージが描画される
+- [x] 最初の取得が失敗すると、`toast.error` がその `message` で呼ばれ、`メッセージを読み込めませんでした` が描画される
+- [x] 最初の取得の失敗の後に「再読み込み」を押すと、`GET` がもう1回呼ばれ、成功すれば一覧が描画される
+- [x] この画面の `groupId` の `message.created` のハンドラを、`members` に含まれる投稿者のメッセージで呼ぶと、そのメッセージが一覧の末尾に投稿者の名前つきで描画される
+- [x] 別の `groupId` の `message.created` のハンドラを呼んでも、一覧が変わらない
+- [x] すでに一覧にある `id` の `message.created` のハンドラを呼んでも、そのメッセージが二重に描画されない
+- [x] `sentAt` が一覧の末尾より前のメッセージの `message.created` を受け取ると、`sentAt` の昇順の位置に描画される
+- [x] `members` にも一覧にもない投稿者の `message.created` を受け取ると、`GET` がもう1回呼ばれ、その応答の一覧（投稿者の名前つき）が描画される
+- [x] 最初の取得が終わる前に `message.created` のハンドラを呼んでも、取得の後の一覧は応答の内容だけである
+- [x] `onReconnect` を呼ぶと、`GET` がもう1回呼ばれ、新しい応答の一覧が描画される
+- [x] 取り直しの応答を待っている間、表示中の一覧が残り、`Skeleton` に戻らない
+- [x] 取り直しを2回続けて始め、2回目の応答が先に届いた後に1回目の応答が届いても、一覧が2回目の応答の内容のままである
+- [x] 取り直しが失敗すると、`toast.error` がその `message` で呼ばれ、表示中の一覧が残る
+- [x] `src/components/chat-view.tsx`・`src/components/message-list.tsx` の内容に、`setInterval` と `setTimeout` が含まれない（ファイルを読んで検査する）
 
 ### 投稿フォーム
 
