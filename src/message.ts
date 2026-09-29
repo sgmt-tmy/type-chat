@@ -1,7 +1,10 @@
+import { DomainError } from "./errors";
 import type { Group } from "./group";
 
 export type Message = {
+  id: string;
   groupId: string;
+  senderId: string;
   text: string;
   sentAt: Date;
 };
@@ -10,17 +13,21 @@ export const MESSAGE_MAX_LENGTH = 1000;
 
 export function createMessage(
   groupId: string,
+  senderId: string,
   text: string,
   sentAt: Date = new Date(),
 ): Message {
   const trimmed = text.trim();
   if (trimmed === "") {
-    throw new Error("メッセージは空にできません");
+    throw new DomainError("validation", "メッセージは空にできません");
   }
   if (trimmed.length > MESSAGE_MAX_LENGTH) {
-    throw new Error(`メッセージは${MESSAGE_MAX_LENGTH}文字以内にしてください`);
+    throw new DomainError(
+      "validation",
+      `メッセージは${MESSAGE_MAX_LENGTH}文字以内にしてください`,
+    );
   }
-  return { groupId, text: trimmed, sentAt };
+  return { id: crypto.randomUUID(), groupId, senderId, text: trimmed, sentAt };
 }
 
 export function postMessageToGroup(
@@ -30,9 +37,9 @@ export function postMessageToGroup(
   sentAt?: Date,
 ): Message {
   if (!group.members.includes(senderId)) {
-    throw new Error("グループのメンバーではありません");
+    throw new DomainError("forbidden", "グループのメンバーではありません");
   }
-  return createMessage(group.name, text, sentAt);
+  return createMessage(group.id, senderId, text, sentAt);
 }
 
 export function sortMessagesByTime(messages: Message[]): Message[] {
