@@ -1,6 +1,6 @@
 ---
-status: draft        # draft / approved / implemented / deprecated
-updated: 2026-09-28
+status: approved        # draft / approved / implemented / deprecated
+updated: 2026-09-29
 ---
 
 # UIの土台（画面構成・UI規約・土台の部品）

@@ -1,6 +1,6 @@
 ---
-status: draft        # draft / approved / implemented / deprecated
-updated: 2026-09-27
+status: approved        # draft / approved / implemented / deprecated
+updated: 2026-09-29
 ---
 
 # データモデルの整備（IDの導入・投稿者ID・ドメインエラー）

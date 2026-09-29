@@ -1,6 +1,6 @@
 ---
-status: draft        # draft / approved / implemented / deprecated
-updated: 2026-09-28
+status: approved        # draft / approved / implemented / deprecated
+updated: 2026-09-29
 ---
 
 # APIの共通規約と、認証なしでの利用者の識別
