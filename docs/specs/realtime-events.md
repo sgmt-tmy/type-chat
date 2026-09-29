@@ -1,5 +1,5 @@
 ---
-status: approved        # draft / approved / implemented / deprecated
+status: implemented       # draft / approved / implemented / deprecated
 updated: 2026-09-29
 ---
 
@@ -175,48 +175,48 @@ export function useLiveEvents(options: UseLiveEventsOptions): void;
 
 ### イベントバス（`src/server/events.ts`）
 
-- [ ] `subscribe("A", listener)` の後に `publish(event, ["A"])` を呼ぶと、`listener` が `event` を引数に1回呼ばれる
-- [ ] `subscribe("A", listener)` の後に `publish(event, ["B"])` を呼ぶと、`listener` は呼ばれない
-- [ ] `subscribe` が返した解除関数を呼んだ後に `publish(event, ["A"])` を呼ぶと、`listener` は呼ばれない
-- [ ] 同じ利用者 `A` で2回 `subscribe` すると、`publish(event, ["A"])` で2つのリスナーがどちらも1回ずつ呼ばれる
-- [ ] `publish(event, ["A", "A"])` を呼ぶと、`A` のリスナーは1回だけ呼ばれる
-- [ ] `publish(event, [])` を呼んでも例外にならず、どのリスナーも呼ばれない
-- [ ] 例外を投げるリスナーと投げないリスナーが同じ利用者にあるとき、`publish` は例外を投げず、投げないリスナーも呼ばれる
-- [ ] 解除関数を2回呼んでも例外にならず、同じ利用者のほかの購読は解除されない
-- [ ] `countSubscribers("A")` が、`A` の購読の数（購読のたびに1増え、解除のたびに1減る）を返す
-- [ ] `createEventBus()` で作った2つのイベントバスは独立している（片方で `publish` しても、もう片方のリスナーは呼ばれない）
-- [ ] `vi.resetModules()` の前に読み込んだモジュールの `subscribe` で購読し、後に読み込み直したモジュールの `publish` で発行すると、リスナーが呼ばれる（`globalThis` の1つのイベントバスを使う）
-- [ ] `LIVE_EVENT_TYPES` が `message.created`・`message.deleted`・`group.updated`・`group.deleted` の4つだけを含む
-- [ ] `formatSseEvent` に `group.deleted` のイベントを渡すと、`event: group.deleted\ndata: {"groupId":"<id>"}\n\n` が返る
-- [ ] `formatSseEvent` に `sentAt` が `new Date("2026-09-28T12:34:56.789Z")` の `message.created` のイベントを渡すと、`data:` の JSON の `message.sentAt` が `"2026-09-28T12:34:56.789Z"` である
-- [ ] `formatSseEvent` に本文が改行を含む `message.created` のイベントを渡すと、返る文字列の `data:` で始まる行が1行だけである
+- [x] `subscribe("A", listener)` の後に `publish(event, ["A"])` を呼ぶと、`listener` が `event` を引数に1回呼ばれる
+- [x] `subscribe("A", listener)` の後に `publish(event, ["B"])` を呼ぶと、`listener` は呼ばれない
+- [x] `subscribe` が返した解除関数を呼んだ後に `publish(event, ["A"])` を呼ぶと、`listener` は呼ばれない
+- [x] 同じ利用者 `A` で2回 `subscribe` すると、`publish(event, ["A"])` で2つのリスナーがどちらも1回ずつ呼ばれる
+- [x] `publish(event, ["A", "A"])` を呼ぶと、`A` のリスナーは1回だけ呼ばれる
+- [x] `publish(event, [])` を呼んでも例外にならず、どのリスナーも呼ばれない
+- [x] 例外を投げるリスナーと投げないリスナーが同じ利用者にあるとき、`publish` は例外を投げず、投げないリスナーも呼ばれる
+- [x] 解除関数を2回呼んでも例外にならず、同じ利用者のほかの購読は解除されない
+- [x] `countSubscribers("A")` が、`A` の購読の数（購読のたびに1増え、解除のたびに1減る）を返す
+- [x] `createEventBus()` で作った2つのイベントバスは独立している（片方で `publish` しても、もう片方のリスナーは呼ばれない）
+- [x] `vi.resetModules()` の前に読み込んだモジュールの `subscribe` で購読し、後に読み込み直したモジュールの `publish` で発行すると、リスナーが呼ばれる（`globalThis` の1つのイベントバスを使う）
+- [x] `LIVE_EVENT_TYPES` が `message.created`・`message.deleted`・`group.updated`・`group.deleted` の4つだけを含む
+- [x] `formatSseEvent` に `group.deleted` のイベントを渡すと、`event: group.deleted\ndata: {"groupId":"<id>"}\n\n` が返る
+- [x] `formatSseEvent` に `sentAt` が `new Date("2026-09-28T12:34:56.789Z")` の `message.created` のイベントを渡すと、`data:` の JSON の `message.sentAt` が `"2026-09-28T12:34:56.789Z"` である
+- [x] `formatSseEvent` に本文が改行を含む `message.created` のイベントを渡すと、返る文字列の `data:` で始まる行が1行だけである
 
 ### 配信のエンドポイント（`src/app/api/events/route.ts`）
 
-- [ ] Cookie のない `Request` で `GET` を呼ぶと、401（`code: "unauthenticated"`）の JSON が返り、購読が増えない
-- [ ] 登録済みの利用者の Cookie を付けた `Request` で `GET` を呼ぶと、200 が返り、`Content-Type` が `text/event-stream` で始まり、`Cache-Control` が `no-cache, no-transform` である
-- [ ] `GET` の後、`countSubscribers(<その利用者のid>)` が1になる
-- [ ] `GET` の後に `publish` でその利用者に `message.created` を発行すると、本文から `formatSseEvent` と同じ文字列が読める
-- [ ] 別の利用者だけに発行したイベントは本文に現れず、その後にその利用者に発行したイベントが最初に読める
-- [ ] `vi.useFakeTimers()` で25秒進めると、本文から `: ping\n\n` が読める
-- [ ] `request` の `AbortController` を abort すると、`countSubscribers(<その利用者のid>)` が0になり、本文の読み取りが終わる（`done: true`）
-- [ ] abort した後に時間を25秒進めても例外にならず、本文に何も書き込まれない（接続の維持のタイマーが止まっている）
-- [ ] ストリームを `cancel` すると、`countSubscribers(<その利用者のid>)` が0になる
-- [ ] ルートのモジュールが `dynamic` を `"force-dynamic"`、`runtime` を `"nodejs"` としてエクスポートしている
+- [x] Cookie のない `Request` で `GET` を呼ぶと、401（`code: "unauthenticated"`）の JSON が返り、購読が増えない
+- [x] 登録済みの利用者の Cookie を付けた `Request` で `GET` を呼ぶと、200 が返り、`Content-Type` が `text/event-stream` で始まり、`Cache-Control` が `no-cache, no-transform` である
+- [x] `GET` の後、`countSubscribers(<その利用者のid>)` が1になる
+- [x] `GET` の後に `publish` でその利用者に `message.created` を発行すると、本文から `formatSseEvent` と同じ文字列が読める
+- [x] 別の利用者だけに発行したイベントは本文に現れず、その後にその利用者に発行したイベントが最初に読める
+- [x] `vi.useFakeTimers()` で25秒進めると、本文から `: ping\n\n` が読める
+- [x] `request` の `AbortController` を abort すると、`countSubscribers(<その利用者のid>)` が0になり、本文の読み取りが終わる（`done: true`）
+- [x] abort した後に時間を25秒進めても例外にならず、本文に何も書き込まれない（接続の維持のタイマーが止まっている）
+- [x] ストリームを `cancel` すると、`countSubscribers(<その利用者のid>)` が0になる
+- [x] ルートのモジュールが `dynamic` を `"force-dynamic"`、`runtime` を `"nodejs"` としてエクスポートしている
 
 ### クライアントのフック（`src/components/use-live-events.ts`）
 
-- [ ] `useLiveEvents` を使うフックをマウントすると、`EventSource` が `"/api/events"` で1回だけ作られる
-- [ ] 4種類のイベントそれぞれについて、その種類のイベントを発火すると、その種類のハンドラだけが `data` を `JSON.parse` した値で1回呼ばれる
-- [ ] `message.created` のハンドラが受け取る `message.sentAt` が文字列のままである（`Date` に変換しない）
-- [ ] ハンドラを渡していない種類のイベントを発火しても、例外にならない
-- [ ] `data` が JSON でないイベントを発火すると、ハンドラが呼ばれず、例外にならない
-- [ ] 最初の `open` を発火しても、`onReconnect` は呼ばれない
-- [ ] 最初の `open` の後に `error`、`open` の順に発火すると、`onReconnect` が1回呼ばれる
-- [ ] 再接続を2回（`error`→`open` を2回）発火すると、`onReconnect` が2回呼ばれる
-- [ ] 別のハンドラを渡して再描画しても、`EventSource` は新しく作られず、イベントを発火すると新しいハンドラが呼ばれる
-- [ ] アンマウントすると、`EventSource` の `close` が呼ばれる
-- [ ] `src/components/use-live-events.ts` の内容に、`setInterval` と `setTimeout` が含まれない（ファイルを読んで検査する）
+- [x] `useLiveEvents` を使うフックをマウントすると、`EventSource` が `"/api/events"` で1回だけ作られる
+- [x] 4種類のイベントそれぞれについて、その種類のイベントを発火すると、その種類のハンドラだけが `data` を `JSON.parse` した値で1回呼ばれる
+- [x] `message.created` のハンドラが受け取る `message.sentAt` が文字列のままである（`Date` に変換しない）
+- [x] ハンドラを渡していない種類のイベントを発火しても、例外にならない
+- [x] `data` が JSON でないイベントを発火すると、ハンドラが呼ばれず、例外にならない
+- [x] 最初の `open` を発火しても、`onReconnect` は呼ばれない
+- [x] 最初の `open` の後に `error`、`open` の順に発火すると、`onReconnect` が1回呼ばれる
+- [x] 再接続を2回（`error`→`open` を2回）発火すると、`onReconnect` が2回呼ばれる
+- [x] 別のハンドラを渡して再描画しても、`EventSource` は新しく作られず、イベントを発火すると新しいハンドラが呼ばれる
+- [x] アンマウントすると、`EventSource` の `close` が呼ばれる
+- [x] `src/components/use-live-events.ts` の内容に、`setInterval` と `setTimeout` が含まれない（ファイルを読んで検査する）
 
 ## 対象外
 
