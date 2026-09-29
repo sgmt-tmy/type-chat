@@ -150,8 +150,8 @@ export type ChatHeaderProps = { groupId: string; groupName: string };
 export function ChatHeader(props: ChatHeaderProps): React.JSX.Element;
 ```
 
-- 左から順に、「戻る」（`/` へのリンク。Next.js の `Link`。左向きの矢印のアイコンと文言「戻る」）、グループ名（この画面のただ1つの `h1`。長い名前は1行で省略表示する（`truncate`））、「設定」（`/groups/<groupId>/settings` へのリンク）を並べる。
-- 「設定」のリンクは `docs/specs/ui-foundation.md` の「画面一覧と導線」に従って置く（設定画面は `docs/specs/group-settings.md` で作る）。
+- 左から順に、「戻る」（`/` へのリンク。Next.js の `Link`。左向きの矢印のアイコンと文言「戻る」）、グループ名（この画面のただ1つの `h1`。長い名前は1行で省略表示する（`truncate`））、設定（`/groups/<groupId>/settings` へのリンク。歯車のアイコンだけのボタンで、`aria-label="グループ設定"`。`docs/specs/group-settings.md`）を並べる。
+- 設定へのリンクは `docs/specs/ui-foundation.md` の「画面一覧と導線」に従って置く（設定画面は `docs/specs/group-settings.md` で作る）。
 - どちらのリンクも主操作の見た目（`bg-primary`）にしない。
 
 #### メッセージ一覧（`src/components/message-list.tsx`）
@@ -317,7 +317,7 @@ Client Component。
 ヘッダー（`src/components/chat-header.tsx`）
 
 - [x] `ChatHeader` に、名前が「戻る」で `href` が `/` のリンクがある
-- [x] `ChatHeader` に、名前が「設定」で `href` が `/groups/<groupId>/settings` のリンクがある
+- [x] `ChatHeader` に、名前が「グループ設定」（`aria-label`）で `href` が `/groups/<groupId>/settings` のリンクがある
 - [x] `ChatHeader` の `h1` の文言が `groupName` である
 - [x] `ChatHeader` のリンクのクラスに `bg-primary` が含まれない
 

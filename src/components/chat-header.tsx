@@ -1,5 +1,7 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Settings } from "lucide-react";
 import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export type ChatHeaderProps = { groupId: string; groupName: string };
 
@@ -18,9 +20,10 @@ export function ChatHeader({ groupId, groupName }: ChatHeaderProps): React.JSX.E
       </h1>
       <Link
         href={`/groups/${groupId}/settings`}
-        className="shrink-0 text-sm text-foreground hover:underline"
+        aria-label="グループ設定"
+        className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "shrink-0")}
       >
-        設定
+        <Settings aria-hidden="true" />
       </Link>
     </div>
   );

@@ -2,7 +2,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createDb, type Db } from "@/db/client";
 import { createGroupRepository } from "@/db/group-repository";
 import { createUserRepository } from "@/db/user-repository";
-import { createGroup } from "@/group";
+import { addMember, createGroup } from "@/group";
+import { subscribe, type LiveEvent } from "@/server/events";
 
 let db: Db;
 
@@ -11,7 +12,7 @@ vi.mock("@/db/client", async (importOriginal) => ({
   getDb: () => db,
 }));
 
-const { GET } = await import("./route");
+const { GET, PATCH } = await import("./route");
 
 async function newUser(name: string): Promise<string> {
   const id = crypto.randomUUID();
@@ -60,6 +61,100 @@ describe("GET /api/groups/[groupId]", () => {
 
   it("Cookie がなければ 401", async () => {
     const res = await call(crypto.randomUUID(), null);
+    expect(res.status).toBe(401);
+    expect((await res.json()).error.code).toBe("unauthenticated");
+  });
+});
+
+function patch(groupId: string, userId: string | null, body: unknown) {
+  return PATCH(
+    new Request(`http://localhost/api/groups/${groupId}`, {
+      method: "PATCH",
+      headers: {
+        "content-type": "application/json",
+        ...(userId ? { cookie: `type_chat_user_id=${userId}` } : {}),
+      },
+      body: JSON.stringify(body),
+    }),
+    { params: Promise.resolve({ groupId }) },
+  );
+}
+
+describe("PATCH /api/groups/[groupId]", () => {
+  async function prepare() {
+    const owner = await newUser("たろう");
+    const member = await newUser("はなこ");
+    const outsider = await newUser("じろう");
+    const base = createGroup("雑談", owner);
+    await createGroupRepository(db).insert(base);
+    const g = addMember(base, member);
+    await createGroupRepository(db).save(g);
+    return { owner, member, outsider, g };
+  }
+
+  it("オーナーは名前を変えられ、GET に反映され、group.updated が発行される", async () => {
+    const { owner, member, g } = await prepare();
+    const events: LiveEvent[] = [];
+    const off = subscribe(member, (e) => events.push(e));
+    const res = await patch(g.id, owner, { name: "  新しい名前  " });
+    off();
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({
+      group: {
+        id: g.id,
+        name: "新しい名前",
+        ownerId: owner,
+        members: [
+          { id: owner, name: "たろう" },
+          { id: member, name: "はなこ" },
+        ],
+      },
+    });
+    expect((await (await call(g.id, owner)).json()).group.name).toBe("新しい名前");
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({ type: "group.updated", data: { group: { id: g.id } } });
+  });
+
+  it("オーナー以外のメンバーは 403", async () => {
+    const { member, g } = await prepare();
+    const res = await patch(g.id, member, { name: "新" });
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual({
+      error: { code: "forbidden", message: "グループ名の変更はオーナーのみ可能です" },
+    });
+    expect((await createGroupRepository(db).findById(g.id))?.name).toBe("雑談");
+  });
+
+  it("メンバーでない利用者と存在しないIDには同じ 404", async () => {
+    const { outsider, g } = await prepare();
+    const a = await patch(g.id, outsider, { name: "新" });
+    const b = await patch(crypto.randomUUID(), outsider, { name: "新" });
+    expect(a.status).toBe(404);
+    expect(b.status).toBe(404);
+    expect(await a.json()).toEqual({
+      error: { code: "not_found", message: "グループが見つかりません" },
+    });
+    expect((await createGroupRepository(db).findById(g.id))?.name).toBe("雑談");
+  });
+
+  it.each([
+    [{ name: "   " }, "グループ名は空にできません"],
+    [{ name: "あ".repeat(51) }, "グループ名は50文字以内で入力してください"],
+    [{}, "リクエストの形式が正しくありません"],
+    [{ name: 1 }, "リクエストの形式が正しくありません"],
+  ])("不正な本文（%#）は 400", async (body, message) => {
+    const { owner, g } = await prepare();
+    let count = 0;
+    const off = subscribe(owner, () => count++);
+    const res = await patch(g.id, owner, body);
+    off();
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: { code: "validation", message } });
+    expect(count).toBe(0);
+  });
+
+  it("Cookie がなければ 401", async () => {
+    const res = await patch(crypto.randomUUID(), null, { name: "新" });
     expect(res.status).toBe(401);
     expect((await res.json()).error.code).toBe("unauthenticated");
   });

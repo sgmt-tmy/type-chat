@@ -1,7 +1,8 @@
 import type { GroupRepository } from "../db/group-repository";
 import type { UserRepository } from "../db/user-repository";
 import { DomainError } from "../errors";
-import { createGroup, type Group } from "../group";
+import { createGroup, renameGroup, type Group } from "../group";
+import { publish } from "./events";
 
 /** 一覧の1行分 */
 export type GroupSummary = {
@@ -57,6 +58,15 @@ export async function findGroupAsMember(
   return group;
 }
 
+async function toGroupDetail(users: UserRepository, group: Group): Promise<GroupDetail> {
+  const members: GroupMemberDetail[] = [];
+  for (const id of group.members) {
+    const user = await users.findById(id);
+    members.push({ id, name: user?.name ?? UNKNOWN_MEMBER_NAME });
+  }
+  return { id: group.id, name: group.name, ownerId: group.ownerId, members };
+}
+
 export async function getGroupDetail(
   groups: GroupRepository,
   users: UserRepository,
@@ -64,10 +74,21 @@ export async function getGroupDetail(
   userId: string,
 ): Promise<GroupDetail> {
   const group = await findGroupAsMember(groups, groupId, userId);
-  const members: GroupMemberDetail[] = [];
-  for (const id of group.members) {
-    const user = await users.findById(id);
-    members.push({ id, name: user?.name ?? UNKNOWN_MEMBER_NAME });
-  }
-  return { id: group.id, name: group.name, ownerId: group.ownerId, members };
+  return toGroupDetail(users, group);
+}
+
+export async function renameGroupByUser(
+  groups: GroupRepository,
+  users: UserRepository,
+  groupId: string,
+  userId: string,
+  name: string,
+): Promise<GroupDetail> {
+  const before = await findGroupAsMember(groups, groupId, userId);
+  const after = renameGroup(before, userId, name);
+  await groups.save(after);
+  publish({ type: "group.updated", data: { group: after } }, [
+    ...new Set([...before.members, ...after.members]),
+  ]);
+  return toGroupDetail(users, after);
 }

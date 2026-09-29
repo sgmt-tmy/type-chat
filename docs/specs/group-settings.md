@@ -256,78 +256,78 @@ Client Component。
 
 ユースケース（`src/server/groups.ts` の `renameGroupByUser`）
 
-- [ ] オーナーが `renameGroupByUser(…, groupId, <オーナーのid>, "  新しい名前  ")` を呼ぶと、`name` が `新しい名前` で、`members` がメンバーの `{ id, name }` の `GroupDetail` が返る
-- [ ] `renameGroupByUser` で変更した名前が、`findById` で取り出したグループの `name` に保存されている
-- [ ] `renameGroupByUser` で変更すると、`subscribe` したメンバー全員（操作したオーナーを含む）のリスナーが、`type` が `group.updated`、`data.group.name` が変更後の名前のイベントで1回ずつ呼ばれる
-- [ ] `renameGroupByUser` で変更しても、`subscribe` したメンバーでない利用者のリスナーは呼ばれない
-- [ ] メンバーであってオーナーでない利用者が `renameGroupByUser` を呼ぶと、`code` が `"forbidden"`、文言が `グループ名の変更はオーナーのみ可能です` の `DomainError` が投げられ、名前が保存されず、イベントが発行されない
-- [ ] メンバーでない利用者が `renameGroupByUser` を呼ぶと、`code` が `"not_found"`、文言が `グループが見つかりません` の `DomainError` が投げられ、イベントが発行されない
-- [ ] `renameGroupByUser` に空白だけの名前を渡すと、`code` が `"validation"`、文言が `グループ名は空にできません` の `DomainError` が投げられ、名前が保存されず、イベントが発行されない
-- [ ] `renameGroupByUser` に51文字の名前を渡すと、`code` が `"validation"`、文言が `グループ名は50文字以内で入力してください` の `DomainError` が投げられ、名前が保存されない
+- [x] オーナーが `renameGroupByUser(…, groupId, <オーナーのid>, "  新しい名前  ")` を呼ぶと、`name` が `新しい名前` で、`members` がメンバーの `{ id, name }` の `GroupDetail` が返る
+- [x] `renameGroupByUser` で変更した名前が、`findById` で取り出したグループの `name` に保存されている
+- [x] `renameGroupByUser` で変更すると、`subscribe` したメンバー全員（操作したオーナーを含む）のリスナーが、`type` が `group.updated`、`data.group.name` が変更後の名前のイベントで1回ずつ呼ばれる
+- [x] `renameGroupByUser` で変更しても、`subscribe` したメンバーでない利用者のリスナーは呼ばれない
+- [x] メンバーであってオーナーでない利用者が `renameGroupByUser` を呼ぶと、`code` が `"forbidden"`、文言が `グループ名の変更はオーナーのみ可能です` の `DomainError` が投げられ、名前が保存されず、イベントが発行されない
+- [x] メンバーでない利用者が `renameGroupByUser` を呼ぶと、`code` が `"not_found"`、文言が `グループが見つかりません` の `DomainError` が投げられ、イベントが発行されない
+- [x] `renameGroupByUser` に空白だけの名前を渡すと、`code` が `"validation"`、文言が `グループ名は空にできません` の `DomainError` が投げられ、名前が保存されず、イベントが発行されない
+- [x] `renameGroupByUser` に51文字の名前を渡すと、`code` が `"validation"`、文言が `グループ名は50文字以内で入力してください` の `DomainError` が投げられ、名前が保存されない
 
 `PATCH /api/groups/[groupId]`
 
-- [ ] オーナーで `PATCH /api/groups/[groupId]` に `{ name: "  新しい名前  " }` を送ると、200 と `{ group: { id, name: "新しい名前", ownerId, members: [{ id, name }] } }` が返り、その後の `GET /api/groups/[groupId]` の `name` が `新しい名前` である
-- [ ] `PATCH` に成功すると、`subscribe` したメンバーのリスナーが、`data.group.id` がそのグループの `id` の `group.updated` のイベントで呼ばれる
-- [ ] メンバーであってオーナーでない利用者で `PATCH` を呼ぶと、403（`code: "forbidden"`、`message: "グループ名の変更はオーナーのみ可能です"`）が返り、名前が変わらない
-- [ ] メンバーでない利用者で `PATCH` を呼ぶと、404（`code: "not_found"`、`message: "グループが見つかりません"`）が返り、名前が変わらない
-- [ ] 存在しないID（UUID の形）で `PATCH` を呼ぶと、メンバーでない利用者への応答と同じステータスと本文の 404 が返る
-- [ ] `PATCH` に空白だけの名前を送ると、400（`code: "validation"`、`message: "グループ名は空にできません"`）が返る
-- [ ] `PATCH` に51文字の名前を送ると、400（`code: "validation"`、`message: "グループ名は50文字以内で入力してください"`）が返る
-- [ ] `PATCH` に `name` のない本文を送ると、400（`code: "validation"`、`message: "リクエストの形式が正しくありません"`）が返り、イベントが発行されない
-- [ ] Cookie のない `Request` で `PATCH` を呼ぶと、401（`code: "unauthenticated"`）が返る
+- [x] オーナーで `PATCH /api/groups/[groupId]` に `{ name: "  新しい名前  " }` を送ると、200 と `{ group: { id, name: "新しい名前", ownerId, members: [{ id, name }] } }` が返り、その後の `GET /api/groups/[groupId]` の `name` が `新しい名前` である
+- [x] `PATCH` に成功すると、`subscribe` したメンバーのリスナーが、`data.group.id` がそのグループの `id` の `group.updated` のイベントで呼ばれる
+- [x] メンバーであってオーナーでない利用者で `PATCH` を呼ぶと、403（`code: "forbidden"`、`message: "グループ名の変更はオーナーのみ可能です"`）が返り、名前が変わらない
+- [x] メンバーでない利用者で `PATCH` を呼ぶと、404（`code: "not_found"`、`message: "グループが見つかりません"`）が返り、名前が変わらない
+- [x] 存在しないID（UUID の形）で `PATCH` を呼ぶと、メンバーでない利用者への応答と同じステータスと本文の 404 が返る
+- [x] `PATCH` に空白だけの名前を送ると、400（`code: "validation"`、`message: "グループ名は空にできません"`）が返る
+- [x] `PATCH` に51文字の名前を送ると、400（`code: "validation"`、`message: "グループ名は50文字以内で入力してください"`）が返る
+- [x] `PATCH` に `name` のない本文を送ると、400（`code: "validation"`、`message: "リクエストの形式が正しくありません"`）が返り、イベントが発行されない
+- [x] Cookie のない `Request` で `PATCH` を呼ぶと、401（`code: "unauthenticated"`）が返る
 
 グループ設定画面（`src/app/groups/[groupId]/settings/page.tsx`）
 
-- [ ] 利用者の Cookie がない状態で設定画面を描画すると、`redirect("/start")` が呼ばれる
-- [ ] メンバーの利用者で設定画面を描画すると、`h1` が1つだけあり、その文言が「グループ設定」である
-- [ ] メンバーでない利用者で設定画面を描画すると、`notFound()` が呼ばれる
-- [ ] 存在しないグループIDで設定画面を描画すると、`notFound()` が呼ばれる
+- [x] 利用者の Cookie がない状態で設定画面を描画すると、`redirect("/start")` が呼ばれる
+- [x] メンバーの利用者で設定画面を描画すると、`h1` が1つだけあり、その文言が「グループ設定」である
+- [x] メンバーでない利用者で設定画面を描画すると、`notFound()` が呼ばれる
+- [x] 存在しないグループIDで設定画面を描画すると、`notFound()` が呼ばれる
 
 設定画面の本体（`src/components/group-settings-view.tsx`）
 
-- [ ] `GroupSettingsView` に、名前が「チャットに戻る」で `href` が `/groups/<groupId>` のリンクがあり、そのクラスに `bg-primary` が含まれない
-- [ ] `GroupSettingsView` に、`h2`「グループ名」と `h2`「メンバー」がある
-- [ ] オーナーで `GroupSettingsView` を描画すると、ラベル「グループ名」の入力欄の値が現在のグループ名で、「保存」ボタンがある
-- [ ] オーナーでない利用者で `GroupSettingsView` を描画すると、グループ名の文字と `グループ名はオーナーだけが変更できます` が出て、ラベル「グループ名」の入力欄と「保存」ボタンがない
-- [ ] オーナーで描画した `GroupSettingsView` のボタンのうち、クラスに `bg-primary` を含むもの（主操作）が「保存」だけである
-- [ ] オーナーでない利用者で描画した `GroupSettingsView` に、クラスに `bg-primary` を含むボタンがない
-- [ ] `GroupSettingsView` で `useLiveEvents` が1回だけ使われる
-- [ ] この画面の `groupId` の `group.updated` のハンドラを呼ぶと、`GET /api/groups/<groupId>` が呼ばれ、応答のグループ名が表示される
-- [ ] 別の `groupId` の `group.updated` のハンドラを呼んでも、`GET /api/groups/<groupId>` が呼ばれない
-- [ ] `onReconnect` を呼ぶと、`GET /api/groups/<groupId>` が呼ばれ、応答の内容が表示される
-- [ ] 取り直しを2回続けて始め、2回目の応答が先に届いた後に1回目の応答が届いても、表示が2回目の応答の内容のままである
-- [ ] 取り直しが失敗すると、`toast.error` がその `message` で呼ばれ、表示中のグループ名が残る
-- [ ] `GroupSettingsView` でグループ名の変更に成功すると、応答のグループ名が表示に反映され、「保存」ボタンが無効に戻る
-- [ ] `src/components/group-settings-view.tsx`・`src/components/rename-group-form.tsx` の内容に、`setInterval` と `setTimeout` が含まれない（ファイルを読んで検査する）
+- [x] `GroupSettingsView` に、名前が「チャットに戻る」で `href` が `/groups/<groupId>` のリンクがあり、そのクラスに `bg-primary` が含まれない
+- [x] `GroupSettingsView` に、`h2`「グループ名」と `h2`「メンバー」がある
+- [x] オーナーで `GroupSettingsView` を描画すると、ラベル「グループ名」の入力欄の値が現在のグループ名で、「保存」ボタンがある
+- [x] オーナーでない利用者で `GroupSettingsView` を描画すると、グループ名の文字と `グループ名はオーナーだけが変更できます` が出て、ラベル「グループ名」の入力欄と「保存」ボタンがない
+- [x] オーナーで描画した `GroupSettingsView` のボタンのうち、クラスに `bg-primary` を含むもの（主操作）が「保存」だけである
+- [x] オーナーでない利用者で描画した `GroupSettingsView` に、クラスに `bg-primary` を含むボタンがない
+- [x] `GroupSettingsView` で `useLiveEvents` が1回だけ使われる
+- [x] この画面の `groupId` の `group.updated` のハンドラを呼ぶと、`GET /api/groups/<groupId>` が呼ばれ、応答のグループ名が表示される
+- [x] 別の `groupId` の `group.updated` のハンドラを呼んでも、`GET /api/groups/<groupId>` が呼ばれない
+- [x] `onReconnect` を呼ぶと、`GET /api/groups/<groupId>` が呼ばれ、応答の内容が表示される
+- [x] 取り直しを2回続けて始め、2回目の応答が先に届いた後に1回目の応答が届いても、表示が2回目の応答の内容のままである
+- [x] 取り直しが失敗すると、`toast.error` がその `message` で呼ばれ、表示中のグループ名が残る
+- [x] `GroupSettingsView` でグループ名の変更に成功すると、応答のグループ名が表示に反映され、「保存」ボタンが無効に戻る
+- [x] `src/components/group-settings-view.tsx`・`src/components/rename-group-form.tsx` の内容に、`setInterval` と `setTimeout` が含まれない（ファイルを読んで検査する）
 
 グループ名の変更フォーム（`src/components/rename-group-form.tsx`）
 
-- [ ] `RenameGroupForm` の入力欄が、ラベル「グループ名」で取得でき、`id` が `RENAME_GROUP_NAME_INPUT_ID` で、値が `currentName` である
-- [ ] 入力欄の値が `currentName` のままの間、「保存」ボタンが無効である
-- [ ] 入力欄の値が `currentName` の前後に空白を足しただけの間、「保存」ボタンが無効である
-- [ ] 入力欄の値を `currentName` と違う名前にすると、「保存」ボタンが有効になる
-- [ ] 名前を変えて「保存」を押すと、`PATCH /api/groups/<groupId>` に `{ name }` が送られる
-- [ ] 名前を変えて入力欄で Enter キーを押すと、`PATCH /api/groups/<groupId>` が送られる
-- [ ] 送信中は「保存」ボタンが無効で、文言が「保存中…」になる
-- [ ] 変更に成功すると、`toast.success("グループ名を変更しました")` が呼ばれ、`onRenamed` が応答の `group` で1回呼ばれる
-- [ ] 空（空白だけを含む）にして送信すると、APIを呼ばずに入力欄の直下に `グループ名は空にできません` が出て、入力欄が `aria-invalid="true"` になり、`aria-describedby` がその文言の要素を指す
-- [ ] 51文字の名前にして送信すると、APIを呼ばずに入力欄の直下に `グループ名は50文字以内で入力してください` が出る
-- [ ] 入力エラーを出した後に入力欄の値を変えると、エラーの文言が消え、`aria-invalid` が外れる
-- [ ] 変更が 400（`validation`）で失敗すると、APIの `message` が入力欄の直下に出て、`toast.error` が呼ばれない
-- [ ] 変更が 403（`forbidden`）で失敗すると、`toast.error("グループ名の変更はオーナーのみ可能です")` が呼ばれ、`onRenamed` が呼ばれない
-- [ ] 変更が失敗した後、「保存」ボタンの文言が「保存」に戻り、入力欄の値が残っている
-- [ ] 入力欄を編集していない状態で `currentName` を別の名前にして再描画すると、入力欄の値が新しい `currentName` になる
-- [ ] 入力欄を編集している状態で `currentName` を別の名前にして再描画すると、入力欄の値が編集中の値のまま残る
+- [x] `RenameGroupForm` の入力欄が、ラベル「グループ名」で取得でき、`id` が `RENAME_GROUP_NAME_INPUT_ID` で、値が `currentName` である
+- [x] 入力欄の値が `currentName` のままの間、「保存」ボタンが無効である
+- [x] 入力欄の値が `currentName` の前後に空白を足しただけの間、「保存」ボタンが無効である
+- [x] 入力欄の値を `currentName` と違う名前にすると、「保存」ボタンが有効になる
+- [x] 名前を変えて「保存」を押すと、`PATCH /api/groups/<groupId>` に `{ name }` が送られる
+- [x] 名前を変えて入力欄で Enter キーを押すと、`PATCH /api/groups/<groupId>` が送られる
+- [x] 送信中は「保存」ボタンが無効で、文言が「保存中…」になる
+- [x] 変更に成功すると、`toast.success("グループ名を変更しました")` が呼ばれ、`onRenamed` が応答の `group` で1回呼ばれる
+- [x] 空（空白だけを含む）にして送信すると、APIを呼ばずに入力欄の直下に `グループ名は空にできません` が出て、入力欄が `aria-invalid="true"` になり、`aria-describedby` がその文言の要素を指す
+- [x] 51文字の名前にして送信すると、APIを呼ばずに入力欄の直下に `グループ名は50文字以内で入力してください` が出る
+- [x] 入力エラーを出した後に入力欄の値を変えると、エラーの文言が消え、`aria-invalid` が外れる
+- [x] 変更が 400（`validation`）で失敗すると、APIの `message` が入力欄の直下に出て、`toast.error` が呼ばれない
+- [x] 変更が 403（`forbidden`）で失敗すると、`toast.error("グループ名の変更はオーナーのみ可能です")` が呼ばれ、`onRenamed` が呼ばれない
+- [x] 変更が失敗した後、「保存」ボタンの文言が「保存」に戻り、入力欄の値が残っている
+- [x] 入力欄を編集していない状態で `currentName` を別の名前にして再描画すると、入力欄の値が新しい `currentName` になる
+- [x] 入力欄を編集している状態で `currentName` を別の名前にして再描画すると、入力欄の値が編集中の値のまま残る
 
 チャット画面からの導線と名前の反映（`src/components/chat-header.tsx`・`src/components/chat-view.tsx`）
 
-- [ ] `ChatHeader` に、名前が「グループ設定」（`aria-label`）で `href` が `/groups/<groupId>/settings` のリンクがあり、その中に `svg`（アイコン）がある
-- [ ] `ChatHeader` の「グループ設定」のリンクの文言（`textContent`）が空で、クラスに `bg-primary` が含まれない
-- [ ] `ChatHeader` に、名前が「設定」のリンクがない
-- [ ] `ChatView` で、この画面の `groupId` の `group.updated` のハンドラを呼ぶと、ヘッダーの `h1` の文言が `data.group.name` になる
-- [ ] `ChatView` で、別の `groupId` の `group.updated` のハンドラを呼んでも、ヘッダーの `h1` の文言が変わらない
-- [ ] `ChatView` で `group.updated` を受け取っても、`useLiveEvents` が1回だけ使われたままで、表示中のメッセージの一覧が残る
+- [x] `ChatHeader` に、名前が「グループ設定」（`aria-label`）で `href` が `/groups/<groupId>/settings` のリンクがあり、その中に `svg`（アイコン）がある
+- [x] `ChatHeader` の「グループ設定」のリンクの文言（`textContent`）が空で、クラスに `bg-primary` が含まれない
+- [x] `ChatHeader` に、名前が「設定」のリンクがない
+- [x] `ChatView` で、この画面の `groupId` の `group.updated` のハンドラを呼ぶと、ヘッダーの `h1` の文言が `data.group.name` になる
+- [x] `ChatView` で、別の `groupId` の `group.updated` のハンドラを呼んでも、ヘッダーの `h1` の文言が変わらない
+- [x] `ChatView` で `group.updated` を受け取っても、`useLiveEvents` が1回だけ使われたままで、表示中のメッセージの一覧が残る
 
 ### メンバー一覧とオーナーの委譲
 
