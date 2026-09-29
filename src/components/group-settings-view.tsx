@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { apiFetch } from "@/lib/api-client";
 import type { GroupDetail } from "../server/groups";
+import { MemberList } from "./member-list";
 import { RenameGroupForm } from "./rename-group-form";
 import { useLiveEvents } from "./use-live-events";
 
@@ -74,6 +75,15 @@ export function GroupSettingsView({
         <CardHeader>
           <h2 className="text-base font-medium text-foreground">メンバー</h2>
         </CardHeader>
+        <CardContent>
+          <MemberList
+            groupId={groupId}
+            members={group.members}
+            ownerId={group.ownerId}
+            currentUserId={currentUserId}
+            onOwnerTransferred={setGroup}
+          />
+        </CardContent>
       </Card>
     </div>
   );

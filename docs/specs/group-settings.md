@@ -1,6 +1,6 @@
 ---
-status: approved        # draft / approved / implemented / deprecated
-updated: 2026-09-29
+status: implemented        # draft / approved / implemented / deprecated
+updated: 2026-09-30
 ---
 
 # グループ設定画面（グループ名の変更・オーナーの委譲）
@@ -333,50 +333,50 @@ Client Component。
 
 ユースケース（`src/server/groups.ts` の `transferOwnerByUser`）
 
-- [ ] オーナーが `transferOwnerByUser(…, groupId, <オーナーのid>, <メンバーのid>)` を呼ぶと、`ownerId` がそのメンバーの `id` の `GroupDetail` が返る
-- [ ] `transferOwnerByUser` の後、`findById` で取り出したグループの `ownerId` が委譲先で、旧オーナーが `members` に残っている
-- [ ] `transferOwnerByUser` で委譲すると、`subscribe` したメンバー全員（旧オーナー・新オーナーを含む）のリスナーが、`type` が `group.updated`、`data.group.ownerId` が委譲先のイベントで1回ずつ呼ばれる
-- [ ] メンバーであってオーナーでない利用者が `transferOwnerByUser` を呼ぶと、`code` が `"forbidden"`、文言が `オーナー権限の委譲はオーナーのみ可能です` の `DomainError` が投げられ、`ownerId` が変わらず、イベントが発行されない
-- [ ] メンバーでない利用者が `transferOwnerByUser` を呼ぶと、`code` が `"not_found"`、文言が `グループが見つかりません` の `DomainError` が投げられる
-- [ ] `transferOwnerByUser` で委譲先に自分（現在のオーナー）を指定すると、`code` が `"validation"`、文言が `委譲先が現在のオーナーと同じです` の `DomainError` が投げられ、イベントが発行されない
-- [ ] `transferOwnerByUser` で委譲先にメンバーでない利用者を指定すると、`code` が `"validation"`、文言が `委譲先はグループのメンバーである必要があります` の `DomainError` が投げられ、`ownerId` が変わらない
+- [x] オーナーが `transferOwnerByUser(…, groupId, <オーナーのid>, <メンバーのid>)` を呼ぶと、`ownerId` がそのメンバーの `id` の `GroupDetail` が返る
+- [x] `transferOwnerByUser` の後、`findById` で取り出したグループの `ownerId` が委譲先で、旧オーナーが `members` に残っている
+- [x] `transferOwnerByUser` で委譲すると、`subscribe` したメンバー全員（旧オーナー・新オーナーを含む）のリスナーが、`type` が `group.updated`、`data.group.ownerId` が委譲先のイベントで1回ずつ呼ばれる
+- [x] メンバーであってオーナーでない利用者が `transferOwnerByUser` を呼ぶと、`code` が `"forbidden"`、文言が `オーナー権限の委譲はオーナーのみ可能です` の `DomainError` が投げられ、`ownerId` が変わらず、イベントが発行されない
+- [x] メンバーでない利用者が `transferOwnerByUser` を呼ぶと、`code` が `"not_found"`、文言が `グループが見つかりません` の `DomainError` が投げられる
+- [x] `transferOwnerByUser` で委譲先に自分（現在のオーナー）を指定すると、`code` が `"validation"`、文言が `委譲先が現在のオーナーと同じです` の `DomainError` が投げられ、イベントが発行されない
+- [x] `transferOwnerByUser` で委譲先にメンバーでない利用者を指定すると、`code` が `"validation"`、文言が `委譲先はグループのメンバーである必要があります` の `DomainError` が投げられ、`ownerId` が変わらない
 
 `PUT /api/groups/[groupId]/owner`
 
-- [ ] オーナーで `PUT /api/groups/[groupId]/owner` に `{ userId: <メンバーのid> }` を送ると、200 と `{ group: { id, name, ownerId: <そのメンバーのid>, members: [{ id, name }] } }` が返る
-- [ ] `PUT` に成功すると、`subscribe` したメンバーのリスナーが、`data.group.ownerId` が委譲先の `group.updated` のイベントで呼ばれる
-- [ ] メンバーであってオーナーでない利用者で `PUT` を呼ぶと、403（`code: "forbidden"`、`message: "オーナー権限の委譲はオーナーのみ可能です"`）が返り、`ownerId` が変わらない
-- [ ] メンバーでない利用者で `PUT` を呼ぶと、404（`code: "not_found"`、`message: "グループが見つかりません"`）が返る
-- [ ] 存在しないID（UUID の形）で `PUT` を呼ぶと、メンバーでない利用者への応答と同じステータスと本文の 404 が返る
-- [ ] `PUT` の `userId` に自分（現在のオーナー）を送ると、400（`code: "validation"`、`message: "委譲先が現在のオーナーと同じです"`）が返る
-- [ ] `PUT` の `userId` にメンバーでない利用者を送ると、400（`code: "validation"`、`message: "委譲先はグループのメンバーである必要があります"`）が返る
-- [ ] `PUT` に `userId` のない本文を送ると、400（`code: "validation"`、`message: "リクエストの形式が正しくありません"`）が返り、イベントが発行されない
-- [ ] Cookie のない `Request` で `PUT` を呼ぶと、401（`code: "unauthenticated"`）が返る
+- [x] オーナーで `PUT /api/groups/[groupId]/owner` に `{ userId: <メンバーのid> }` を送ると、200 と `{ group: { id, name, ownerId: <そのメンバーのid>, members: [{ id, name }] } }` が返る
+- [x] `PUT` に成功すると、`subscribe` したメンバーのリスナーが、`data.group.ownerId` が委譲先の `group.updated` のイベントで呼ばれる
+- [x] メンバーであってオーナーでない利用者で `PUT` を呼ぶと、403（`code: "forbidden"`、`message: "オーナー権限の委譲はオーナーのみ可能です"`）が返り、`ownerId` が変わらない
+- [x] メンバーでない利用者で `PUT` を呼ぶと、404（`code: "not_found"`、`message: "グループが見つかりません"`）が返る
+- [x] 存在しないID（UUID の形）で `PUT` を呼ぶと、メンバーでない利用者への応答と同じステータスと本文の 404 が返る
+- [x] `PUT` の `userId` に自分（現在のオーナー）を送ると、400（`code: "validation"`、`message: "委譲先が現在のオーナーと同じです"`）が返る
+- [x] `PUT` の `userId` にメンバーでない利用者を送ると、400（`code: "validation"`、`message: "委譲先はグループのメンバーである必要があります"`）が返る
+- [x] `PUT` に `userId` のない本文を送ると、400（`code: "validation"`、`message: "リクエストの形式が正しくありません"`）が返り、イベントが発行されない
+- [x] Cookie のない `Request` で `PUT` を呼ぶと、401（`code: "unauthenticated"`）が返る
 
 メンバー一覧（`src/components/member-list.tsx`）
 
-- [ ] `MemberList` にメンバーを3人渡すと、渡した順に3つの `li` が描画され、各行にメンバーの名前が出る
-- [ ] `ownerId` のメンバーの行にだけ「オーナー」が出て、ほかの行には出ない
-- [ ] `currentUserId` のメンバーの行にだけ、名前の後に `（あなた）` が出る
-- [ ] オーナーで描画すると、自分以外の各行に `aria-label` が `<名前>さんの操作` のボタンがあり、自分の行にはない
-- [ ] オーナーでない利用者で描画すると、`<名前>さんの操作` のボタンがどの行にもない
-- [ ] `<名前>さんの操作` のボタンのクラスに `bg-primary` が含まれない
-- [ ] 操作メニューを開くと「オーナーにする」の項目があり、選ぶと `alertdialog` に `<名前>さんをオーナーにしますか？` と `委譲するとあなたはグループ名の変更やメンバーの追加ができなくなります。` が出る
-- [ ] 確認ダイアログの「キャンセル」を押すと、`PUT` が呼ばれずにダイアログが閉じる
-- [ ] 確認ダイアログの「オーナーにする」を押すと、`PUT /api/groups/<groupId>/owner` に `{ userId: <そのメンバーのid> }` が送られる
-- [ ] 送信中は、確認ダイアログの確定ボタンが無効で、文言が「変更中…」になる
-- [ ] 委譲に成功すると、`toast.success("オーナーを<名前>さんに変更しました")` が呼ばれ、ダイアログが閉じ、`onOwnerTransferred` が応答の `group` で1回呼ばれる
-- [ ] 委譲が失敗すると、`toast.error` がその `message` で呼ばれ、ダイアログが開いたままで、`onOwnerTransferred` が呼ばれない
+- [x] `MemberList` にメンバーを3人渡すと、渡した順に3つの `li` が描画され、各行にメンバーの名前が出る
+- [x] `ownerId` のメンバーの行にだけ「オーナー」が出て、ほかの行には出ない
+- [x] `currentUserId` のメンバーの行にだけ、名前の後に `（あなた）` が出る
+- [x] オーナーで描画すると、自分以外の各行に `aria-label` が `<名前>さんの操作` のボタンがあり、自分の行にはない
+- [x] オーナーでない利用者で描画すると、`<名前>さんの操作` のボタンがどの行にもない
+- [x] `<名前>さんの操作` のボタンのクラスに `bg-primary` が含まれない
+- [x] 操作メニューを開くと「オーナーにする」の項目があり、選ぶと `alertdialog` に `<名前>さんをオーナーにしますか？` と `委譲するとあなたはグループ名の変更やメンバーの追加ができなくなります。` が出る
+- [x] 確認ダイアログの「キャンセル」を押すと、`PUT` が呼ばれずにダイアログが閉じる
+- [x] 確認ダイアログの「オーナーにする」を押すと、`PUT /api/groups/<groupId>/owner` に `{ userId: <そのメンバーのid> }` が送られる
+- [x] 送信中は、確認ダイアログの確定ボタンが無効で、文言が「変更中…」になる
+- [x] 委譲に成功すると、`toast.success("オーナーを<名前>さんに変更しました")` が呼ばれ、ダイアログが閉じ、`onOwnerTransferred` が応答の `group` で1回呼ばれる
+- [x] 委譲が失敗すると、`toast.error` がその `message` で呼ばれ、ダイアログが開いたままで、`onOwnerTransferred` が呼ばれない
 
 設定画面への組み込み（`src/components/group-settings-view.tsx`）
 
-- [ ] `GroupSettingsView` のセクション「メンバー」に、`initialGroup` のメンバーの名前が参加順に出る
-- [ ] オーナーで描画した `GroupSettingsView` で委譲に成功すると、委譲先の行に「オーナー」が出て、自分の行から「オーナー」が消える
-- [ ] 委譲に成功した後の `GroupSettingsView` では、ラベル「グループ名」の入力欄と「保存」ボタンがなくなり、`グループ名はオーナーだけが変更できます` が出る
-- [ ] 委譲に成功した後の `GroupSettingsView` では、`<名前>さんの操作` のボタンがどの行にもない
-- [ ] オーナーでない利用者で描画した `GroupSettingsView` で、自分への委譲の `group.updated` を受け取って取り直すと、ラベル「グループ名」の入力欄と「保存」ボタンが出て、自分以外の行に `<名前>さんの操作` のボタンが出る
-- [ ] オーナーで描画した `GroupSettingsView` で、確認ダイアログを閉じた状態のボタンのうち、クラスに `bg-primary` を含むものが「保存」だけである
-- [ ] `src/components/member-list.tsx` の内容に、`setInterval` と `setTimeout` が含まれない（ファイルを読んで検査する）
+- [x] `GroupSettingsView` のセクション「メンバー」に、`initialGroup` のメンバーの名前が参加順に出る
+- [x] オーナーで描画した `GroupSettingsView` で委譲に成功すると、委譲先の行に「オーナー」が出て、自分の行から「オーナー」が消える
+- [x] 委譲に成功した後の `GroupSettingsView` では、ラベル「グループ名」の入力欄と「保存」ボタンがなくなり、`グループ名はオーナーだけが変更できます` が出る
+- [x] 委譲に成功した後の `GroupSettingsView` では、`<名前>さんの操作` のボタンがどの行にもない
+- [x] オーナーでない利用者で描画した `GroupSettingsView` で、自分への委譲の `group.updated` を受け取って取り直すと、ラベル「グループ名」の入力欄と「保存」ボタンが出て、自分以外の行に `<名前>さんの操作` のボタンが出る
+- [x] オーナーで描画した `GroupSettingsView` で、確認ダイアログを閉じた状態のボタンのうち、クラスに `bg-primary` を含むものが「保存」だけである
+- [x] `src/components/member-list.tsx` の内容に、`setInterval` と `setTimeout` が含まれない（ファイルを読んで検査する）
 
 ## 対象外
 

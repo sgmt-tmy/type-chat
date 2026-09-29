@@ -136,6 +136,45 @@ describe("GroupSettingsView", () => {
     expect(screen.getByRole("button", { name: "保存" })).toBeDisabled();
   });
 
+  it("メンバーの名前が参加順に出る", () => {
+    renderView();
+    const items = screen.getAllByRole("listitem");
+    expect(items.map((li) => li.textContent)).toEqual(["わたし（あなた）オーナー", "はなこ"]);
+  });
+
+  it("委譲に成功すると、オーナー表示と操作が切り替わる", async () => {
+    apiFetch.mockResolvedValue({ ok: true, data: { group: { ...group, ownerId: "u2" } } });
+    renderView();
+    await userEvent.click(screen.getByRole("button", { name: "はなこさんの操作" }));
+    await userEvent.click(await screen.findByRole("menuitem", { name: "オーナーにする" }));
+    await userEvent.click(await screen.findByRole("button", { name: "オーナーにする" }));
+    await waitFor(() => expect(toast.success).toHaveBeenCalled());
+    const items = screen.getAllByRole("listitem");
+    expect(items[1]?.textContent).toContain("オーナー");
+    expect(items[0]?.textContent).not.toContain("オーナー");
+    expect(screen.queryByLabelText("グループ名")).toBeNull();
+    expect(screen.queryByRole("button", { name: "保存" })).toBeNull();
+    expect(screen.getByText("グループ名はオーナーだけが変更できます")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /さんの操作/ })).toBeNull();
+  });
+
+  it("自分への委譲を group.updated で受けて取り直すと、編集と操作が出る", async () => {
+    apiFetch.mockResolvedValue({ ok: true, data: { group: { ...group, ownerId: "u2" } } });
+    renderView("u2");
+    expect(screen.queryByLabelText("グループ名")).toBeNull();
+    act(() => live.handlers["group.updated"]?.({ group: { id: "g1" } }));
+    expect(await screen.findByLabelText("グループ名")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "保存" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "わたしさんの操作" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "はなこさんの操作" })).toBeNull();
+  });
+
+  it("確認ダイアログを閉じた状態の主操作は保存だけ", () => {
+    renderView();
+    const primary = screen.getAllByRole("button").filter((b) => b.className.includes("bg-primary"));
+    expect(primary.map((b) => b.textContent)).toEqual(["保存"]);
+  });
+
   it("ソースに setInterval と setTimeout が含まれない", () => {
     for (const file of ["group-settings-view.tsx", "rename-group-form.tsx"]) {
       const source = readFileSync(path.join(__dirname, file), "utf8");
