@@ -3,7 +3,9 @@
 // 決定の経緯: Issue #54（T10）のgate承認コメント（2026-09-26。案Aで開始）。
 //   → Issue #73（T13）のgate承認コメント（2026-09-26）で、本人アカウントでは通知が届かないことが分かり、
 //     ボット用GitHubアカウントのPATで gh を実行する方式に変更（詳細は Vault側 ADR 0006）。
-// 使い方: node scripts/harness/notify.js --event <WAIT_GATE|ESCALATE|TASK_DONE> --issue <番号> [--pr <番号>]
+// 使い方: node scripts/harness/notify.js --event <WAIT_GATE|ESCALATE|TASK_DONE> --issue <番号> [--pr <番号>] [--review <MERGE_OK|NEEDS_FIX>]
+//   --review は TASK_DONE のときだけ指定でき、spec-reviewer の判定を本文に載せる（省略時は「レビュー未実施」）。
+//   決め方の経緯は Vault側 ADR 0011（Issue #184）。
 //   gh コマンドで Issue を読み、コメントとラベルを付ける。環境変数 HARNESS_NOTIFY_BOT_TOKEN に
 //   ボットアカウントのPATを渡す（gh の GH_TOKEN として使う。リポジトリには一切書き込まない）。
 //   未設定ならエラーにする（本人アカウントで実行すると、GitHubは自分自身の操作を通知しないため）。
@@ -14,6 +16,7 @@ import { parseHarnessMetadata } from "./metadata.js";
 import { PROGRESS_MARKER } from "./next-task.js";
 
 export const EVENTS = ["WAIT_GATE", "ESCALATE", "TASK_DONE"];
+export const REVIEW_VERDICTS = ["MERGE_OK", "NEEDS_FIX"];
 export const WAITING_LABEL = "gate:waiting";
 // gh をボットアカウントで実行するためのPATを渡す環境変数（Issue #73 / T13）。
 export const BOT_TOKEN_ENV = "HARNESS_NOTIFY_BOT_TOKEN";
@@ -75,6 +78,16 @@ const TITLES = {
   TASK_DONE: "タスクのPRができました（レビュー・マージ待ち）",
 };
 
+function reviewText(review) {
+  if (review === "MERGE_OK") {
+    return "MERGE_OK（マージしてよい。詳細はPRの `harness:review` コメント）";
+  }
+  if (review === "NEEDS_FIX") {
+    return "NEEDS_FIX（直してからマージ。詳細はPRの `harness:review` コメント。自動では差し戻さない）";
+  }
+  return "レビュー未実施（人が spec-reviewer を呼び出す）";
+}
+
 function reasonLines(input) {
   if (input.event === "WAIT_GATE") {
     return [`- 止まった理由: gate が必要なタスクです（gate_reasons: [${input.gateReasons.join(", ")}]）`];
@@ -85,10 +98,10 @@ function reasonLines(input) {
       `- 最後の失敗: ${input.lastFailure}`,
     ];
   }
-  return [`- PR: #${input.pr}`];
+  return [`- PR: #${input.pr}`, `- spec-reviewer の判定: ${reviewText(input.review)}`];
 }
 
-function resumeLines(event) {
+function resumeLines(event, review) {
   if (event === "WAIT_GATE") {
     return [
       "1. Issue本文の「人が判断すること」を読み、`## gate承認` で始まるコメントに判断を書く",
@@ -105,8 +118,14 @@ function resumeLines(event) {
       "4. 着手済みのタスクはオーケストレーターが再開しないため、Implementer に Issue番号を渡して手動で呼ぶ。Issueを分け直した場合は `/next-task` を手動で実行する",
     ];
   }
+  const reviewStep =
+    review === undefined
+      ? "1. `spec-reviewer` を呼び出してPRをレビューし、問題がなければマージする（Issueは `Closes` で閉じる）"
+      : review === "NEEDS_FIX"
+        ? "1. PRの `harness:review` コメントの指摘を確認し、続けるか（Implementer を手動で呼ぶ）を判断する。問題がなければマージする（Issueは `Closes` で閉じる）"
+        : "1. PRの `harness:review` コメントを確認し、問題がなければマージする（Issueは `Closes` で閉じる）";
   return [
-    "1. PRをレビューし、問題がなければマージする（Issueは `Closes` で閉じる）",
+    reviewStep,
     "2. `/next-task` を手動で実行し、次のタスクへ進める",
   ];
 }
@@ -126,7 +145,7 @@ export function buildNotification(input) {
     ...reasonLines(input),
     "",
     "### 再開の手順",
-    ...resumeLines(input.event),
+    ...resumeLines(input.event, input.review),
     "",
   ].join("\n");
   return { body, addLabel: WAITING_EVENTS.includes(input.event) };
@@ -136,10 +155,10 @@ export function buildNotification(input) {
  * gh issue view の結果から通知の入力を組み立てる。
  * 成功時は { input }、失敗時は { error }。
  */
-export function notificationInput({ event, issue, pr }, view) {
+export function notificationInput({ event, issue, pr, review }, view) {
   const base = { event, issue, url: view.url };
   if (event === "TASK_DONE") {
-    return { input: { ...base, pr } };
+    return { input: { ...base, pr, review } };
   }
   const { metadata, errors } = parseHarnessMetadata(view.body);
   if (errors) {
@@ -168,7 +187,7 @@ export function alreadyNotified(notification, view) {
   return !notification.addLabel || view.labels.some((label) => label.name === WAITING_LABEL);
 }
 
-function validateArgs({ event, issue, pr }) {
+function validateArgs({ event, issue, pr, review }) {
   const errors = [];
   if (!EVENTS.includes(event)) {
     errors.push(`--event は ${EVENTS.join(" / ")} のいずれかにしてください（${event}）`);
@@ -181,6 +200,12 @@ function validateArgs({ event, issue, pr }) {
   }
   if (event !== "TASK_DONE" && pr !== undefined) {
     errors.push("--pr は TASK_DONE のときだけ指定してください");
+  }
+  if (review !== undefined && event !== "TASK_DONE") {
+    errors.push("--review は TASK_DONE のときだけ指定してください");
+  }
+  if (review !== undefined && !REVIEW_VERDICTS.includes(review)) {
+    errors.push(`--review は ${REVIEW_VERDICTS.join(" / ")} のいずれかにしてください（${review}）`);
   }
   return errors;
 }
@@ -234,10 +259,10 @@ export function notify(args, runGh, token = tokenFromEnv()) {
 function parseArgs(argv) {
   const args = {};
   for (let i = 0; i < argv.length; i++) {
-    const match = argv[i].match(/^--(event|issue|pr)$/);
+    const match = argv[i].match(/^--(event|issue|pr|review)$/);
     if (match) {
       const value = argv[++i];
-      args[match[1]] = match[1] === "event" ? value : /^\d+$/.test(value ?? "") ? Number(value) : NaN;
+      args[match[1]] = match[1] === "event" || match[1] === "review" ? value : /^\d+$/.test(value ?? "") ? Number(value) : NaN;
     }
   }
   return args;

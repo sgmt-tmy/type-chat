@@ -132,6 +132,19 @@ describe("buildNotification", () => {
     expect(body).toContain("`/next-task` を手動で実行し");
   });
 
+  it("TASK_DONE: --review の判定を本文に載せ、省略時は「レビュー未実施」と書く", () => {
+    const base = { event: "TASK_DONE", issue: 54, url: URL, pr: 70 };
+    const ok = buildNotification({ ...base, review: "MERGE_OK" }).body;
+    expect(ok).toContain("- spec-reviewer の判定: MERGE_OK");
+    const fix = buildNotification({ ...base, review: "NEEDS_FIX" }).body;
+    expect(fix).toContain("- spec-reviewer の判定: NEEDS_FIX");
+    expect(fix).toContain("自動では差し戻さない");
+    const none = buildNotification(base).body;
+    expect(none).toContain("- spec-reviewer の判定: レビュー未実施");
+    expect(none).toContain("`spec-reviewer` を呼び出して");
+    expect(ok.split("\n")[0]).toBe("<!-- harness:notify event=TASK_DONE pr=#70 -->");
+  });
+
   it("どのイベントの本文にも、ワークフローを起動するメンション文字列を含まない", () => {
     for (const event of ["WAIT_GATE", "ESCALATE", "TASK_DONE"]) {
       const { body } = buildNotification({
@@ -236,6 +249,13 @@ describe("notify（送信はモック）", () => {
     expect(gh.calls[1].input).toContain("- PR: #70");
   });
 
+  it("TASK_DONE: --review の判定がコメントに入る", () => {
+    const gh = fakeGh(view());
+    const result = notify({ event: "TASK_DONE", issue: 54, pr: 70, review: "NEEDS_FIX" }, gh.run);
+    expect(result.actions).toEqual(["comment"]);
+    expect(gh.calls[1].input).toContain("- spec-reviewer の判定: NEEDS_FIX");
+  });
+
   it("送信済みなら何も送らない", () => {
     const body = buildNotification({
       event: "WAIT_GATE",
@@ -290,6 +310,13 @@ describe("notify（送信はモック）", () => {
     expect(gh.calls).toHaveLength(0);
   });
 
+  it("--review は TASK_DONE 以外・許可されない値ならエラー（gh を呼ばない）", () => {
+    const gh = fakeGh(view());
+    expect(notify({ event: "WAIT_GATE", issue: 54, review: "MERGE_OK" }, gh.run).errors[0]).toContain("--review");
+    expect(notify({ event: "TASK_DONE", issue: 54, pr: 70, review: "OK" }, gh.run).errors[0]).toContain("--review");
+    expect(gh.calls).toHaveLength(0);
+  });
+
   it("ボットアカウントのPAT（環境変数）が渡されていなければ gh を呼ばずにエラー", () => {
     const gh = fakeGh(view());
     const result = notify({ event: "WAIT_GATE", issue: 54 }, gh.run, "");
@@ -326,6 +353,13 @@ describe("runCli", () => {
     const { code, stdout } = runCli(["--event", "TASK_DONE", "--issue", "54", "--pr", "70"], gh.run);
     expect(code).toBe(0);
     expect(JSON.parse(stdout)).toMatchObject({ sent: true, actions: ["comment"] });
+  });
+
+  it("--review を渡せる", () => {
+    const gh = fakeGh(view());
+    const { code } = runCli(["--event", "TASK_DONE", "--issue", "54", "--pr", "70", "--review", "MERGE_OK"], gh.run);
+    expect(code).toBe(0);
+    expect(gh.calls[1].input).toContain("MERGE_OK");
   });
 
   it("エラーなら終了コード 1", () => {
