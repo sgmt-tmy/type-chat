@@ -118,6 +118,28 @@ describe("evaluateGateRules", () => {
     expect(evaluateGateRules(rules, ctxNoGate).gate).toBe(false);
   });
 
+  it("spec_ambiguity: *.test.tsx だけの変更は該当せず、*.tsx 本体は該当する", () => {
+    const rules = rulesWith("spec_ambiguity", {
+      id: "spec_ambiguity.src-without-approved-spec",
+      check: "spec_link",
+      paths: ["src/**"],
+      exclude_paths: ["src/**/*.test.ts", "src/**/*.test.tsx"],
+      spec_paths: ["docs/specs/*.md"],
+      allowed_statuses: ["approved", "implemented"],
+    });
+
+    const testsOnly = emptyCtx();
+    testsOnly.diff.files = [
+      { path: "src/foo.test.tsx", changeType: "added" },
+      { path: "src/a/b/foo.test.tsx", changeType: "added" },
+    ];
+    expect(evaluateGateRules(rules, testsOnly).gate).toBe(false);
+
+    const withComponent = emptyCtx();
+    withComponent.diff.files = [{ path: "src/foo.tsx", changeType: "added" }];
+    expect(evaluateGateRules(rules, withComponent).gate).toBe(true);
+  });
+
   it("spec_ambiguity: 受け入れ条件がチェックボックス形式でなければ該当する", () => {
     const rules = rulesWith("spec_ambiguity", {
       id: "spec_ambiguity.acceptance-not-checkbox",
