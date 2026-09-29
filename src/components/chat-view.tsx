@@ -27,10 +27,11 @@ function sortBySentAt(messages: Array<ChatMessage>): Array<ChatMessage> {
 
 export function ChatView({
   groupId,
-  groupName,
+  groupName: initialGroupName,
   currentUserId,
   members,
 }: ChatViewProps): React.JSX.Element {
+  const [groupName, setGroupName] = useState(initialGroupName);
   const [state, setState] = useState<"loading" | "failed" | "loaded">("loading");
   const [messages, setMessages] = useState(() => new Array<ChatMessage>());
   const latestRequest = useRef(0);
@@ -70,6 +71,9 @@ export function ChatView({
 
   useLiveEvents({
     handlers: {
+      "group.updated": (data) => {
+        if (data.group.id === groupId) setGroupName(data.group.name);
+      },
       "message.created": (data) => {
         if (data.groupId !== groupId || state !== "loaded") return;
         const { message } = data;

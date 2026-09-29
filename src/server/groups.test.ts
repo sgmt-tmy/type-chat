@@ -3,12 +3,14 @@ import { createDb } from "../db/client";
 import { createGroupRepository } from "../db/group-repository";
 import { createUserRepository } from "../db/user-repository";
 import { DomainError } from "../errors";
-import { createGroup } from "../group";
+import { addMember, createGroup } from "../group";
+import { subscribe, type LiveEvent } from "./events";
 import {
   createGroupByUser,
   findGroupAsMember,
   getGroupDetail,
   listGroupsOfUser,
+  renameGroupByUser,
   UNKNOWN_MEMBER_NAME,
 } from "./groups";
 
@@ -134,5 +136,60 @@ describe("getGroupDetail", () => {
     await expect(getGroupDetail(groups, users, g.id, "u2")).rejects.toMatchObject({
       code: "not_found",
     });
+  });
+});
+
+describe("renameGroupByUser", () => {
+  async function prepare() {
+    const { groups, users } = setup();
+    await addUser(users, "u1", "たろう");
+    await addUser(users, "u2", "はなこ");
+    await addUser(users, "u3", "じろう");
+    const base = createGroup("雑談", "u1");
+    await groups.insert(base);
+    const g = addMember(base, "u2");
+    await groups.save(g);
+    return { groups, users, g };
+  }
+
+  it("トリムして保存し、名前つきの詳細を返す", async () => {
+    const { groups, users, g } = await prepare();
+    const detail = await renameGroupByUser(groups, users, g.id, "u1", "  新しい名前  ");
+    expect(detail.name).toBe("新しい名前");
+    expect(detail.members).toEqual([
+      { id: "u1", name: "たろう" },
+      { id: "u2", name: "はなこ" },
+    ]);
+    expect((await groups.findById(g.id))?.name).toBe("新しい名前");
+  });
+
+  it("メンバー全員に group.updated を1回ずつ発行し、非メンバーには発行しない", async () => {
+    const { groups, users, g } = await prepare();
+    const got: Record<string, LiveEvent[]> = { u1: [], u2: [], u3: [] };
+    const offs = Object.keys(got).map((id) => subscribe(id, (e) => got[id]?.push(e)));
+    await renameGroupByUser(groups, users, g.id, "u1", "新");
+    offs.forEach((off) => off());
+    for (const id of ["u1", "u2"]) {
+      expect(got[id]).toHaveLength(1);
+      expect(got[id]?.[0]).toMatchObject({ type: "group.updated", data: { group: { name: "新" } } });
+    }
+    expect(got.u3).toHaveLength(0);
+  });
+
+  it.each([
+    ["u2", "新", "forbidden", "グループ名の変更はオーナーのみ可能です"],
+    ["u3", "新", "not_found", "グループが見つかりません"],
+    ["u1", "   ", "validation", "グループ名は空にできません"],
+    ["u1", "あ".repeat(51), "validation", "グループ名は50文字以内で入力してください"],
+  ])("失敗（%#）では保存も発行もしない", async (uid, name, code, message) => {
+    const { groups, users, g } = await prepare();
+    let count = 0;
+    const off = subscribe("u1", () => count++);
+    const err = await renameGroupByUser(groups, users, g.id, uid, name).catch((e) => e);
+    off();
+    expect(err).toBeInstanceOf(DomainError);
+    expect(err).toMatchObject({ code, message });
+    expect((await groups.findById(g.id))?.name).toBe("雑談");
+    expect(count).toBe(0);
   });
 });

@@ -225,4 +225,27 @@ describe("ChatView", () => {
       expect(screen.getByLabelText("メッセージ")).toHaveFocus();
     });
   });
+
+  describe("group.updated", () => {
+    it("この画面のグループならヘッダーのグループ名が変わり、メッセージが残る", async () => {
+      apiFetch.mockResolvedValue(ok([m("1", "u2", "はなこ", 1)]));
+      renderView();
+      await screen.findByText("text-1");
+      act(() => {
+        live.handlers["group.updated"]?.({ group: { id: "g1", name: "新しい名前" } });
+      });
+      expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("新しい名前");
+      expect(screen.getByText("text-1")).toBeTruthy();
+      expect(useLiveEvents).toHaveBeenCalled();
+    });
+
+    it("別のグループなら変わらない", async () => {
+      apiFetch.mockResolvedValue(ok([]));
+      renderView();
+      act(() => {
+        live.handlers["group.updated"]?.({ group: { id: "other", name: "別" } });
+      });
+      expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("雑談");
+    });
+  });
 });
