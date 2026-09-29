@@ -292,4 +292,4 @@ Issue #55（T11）の通しの検証で、案Aのままでは通知が人に届�
 
 - `WAIT_GATE`: 人が `## gate承認` コメントを書き、`gate:approved` ラベルを付け、`gate:waiting` ラベルを外してから、`/next-task` を手動で実行する。
 - `ESCALATE`: 人が続けるか・Issueを分け直すかを決めてIssueに記録し（必要なら `max_attempts` を書き換え）、`gate:waiting` ラベルを外す。着手済みのタスクはオーケストレーターが再開しないため、続けるときは Implementer に Issue番号を渡して手動で呼ぶ。
-- `TASK_DONE`: 人はPRをレビューする際、`spec-reviewer`を呼び出してから判断する。`spec-reviewer`（人が呼び出す、内容の妥当性を見る正式なReviewer）の判断を経てからマージし、`/next-task` を手動で実行する。CIの`claude-review`（一次スクリーニング）は廃止済み（Vault側 ADR 0009。指摘が実際の修正につながった割合が低く、放置される実態もあったため）。
+- `TASK_DONE`: `/next-task` が `spec-reviewer`（内容の妥当性を見る正式なReviewer）を自動で1回呼び、報告をPRコメント（1行目のマーカー `<!-- harness:review pr=#<PR番号> -->`、最終行に `REVIEW: MERGE_OK` / `REVIEW: NEEDS_FIX`）に投稿し、通知に判定を載せる（Vault側 ADR 0011）。人は通知の判定とPRの `harness:review` コメントを確認してからマージし、`/next-task` を手動で実行する。`NEEDS_FIX` でも自動では差し戻さない（続けるかは人が判断する）。判定が「レビュー未実施」のときは、人が `spec-reviewer` を呼び出してから判断する。人が手動で `spec-reviewer` を呼び出し直してもよい。CIの`claude-review`（一次スクリーニング）は廃止済み（Vault側 ADR 0009。指摘が実際の修正につながった割合が低く、放置される実態もあったため）。

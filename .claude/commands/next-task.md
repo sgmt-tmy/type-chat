@@ -38,12 +38,28 @@ node scripts/harness/next-task.js --issues "$DIR/issues.json" --branches "$DIR/b
 
 | `result` | すること |
 | --- | --- |
-| `RUN` | `role`（今は常に `implementer`）のサブエージェントを、Issue `#<issue>` を渡して1回呼ぶ。PRができたら、そのPR番号を渡して `verifier` を1回呼ぶ。PRができていれば `TASK_DONE` を通知する（下の「3. 人に通知する」）。両方の結果を報告して止まる |
+| `RUN` | `role`（今は常に `implementer`）のサブエージェントを、Issue `#<issue>` を渡して1回呼ぶ。PRができたら、そのPR番号を渡して `verifier` を1回呼ぶ。続けて、同じPR番号を渡して `spec-reviewer` を1回呼び、報告をPRコメントに投稿する（下の「2.1 spec-reviewer の結果を投稿する」）。PRができていれば `TASK_DONE` を、判定つきで通知する（下の「3. 人に通知する」）。すべての結果を報告して止まる |
 | `WAIT_GATE` | `WAIT_GATE` を通知して止まる。Issue `#<issue>` が gate の承認待ち（`## gate承認` コメントと `gate:approved` ラベル）であることを報告する |
 | `ESCALATE` | `ESCALATE` を通知して止まる。Issue `#<issue>` の試行回数が `max_attempts` に達したことと、最新のprogressスナップショットの `last_failure` を報告する |
 | `BLOCKED` | 止まる。open のタスクが、依存の完了待ちか着手済み（作業中・レビュー待ち・人の判断待ち）しかないことを報告する |
 | `DONE` | 止まる。open のタスクがないことを報告する |
 | `ERROR` | 止まる。`errors` をそのまま報告する（循環依存・メタデータ不正・ラベルとの食い違い・同じ番号のブランチが2本以上など） |
+
+### 2.1 spec-reviewer の結果を投稿する
+
+決め方の経緯は Vault側 ADR 0011（Issue #184）。`spec-reviewer` はImplementerとは別のサブエージェントとして呼ぶ（レビューの独立性のため）。
+
+- 依頼文の最初の参照を `PR #<番号>` にする（usageの書き込み先を特定するため。`.claude/harness/conventions.md` の「usage記録」）。
+- `spec-reviewer` の報告の最終行 `REVIEW: MERGE_OK` / `REVIEW: NEEDS_FIX` から判定を読む。どちらも読み取れなければ、判定なし（`--review` を付けない）として扱い、その旨を報告に含める。
+- 報告をそのまま、次の1行目のマーカー付きでPRにコメントする。
+
+```bash
+gh pr comment <PR番号> --body-file "$DIR/review.md"
+```
+
+  `$DIR/review.md` の1行目: `<!-- harness:review pr=#<PR番号> -->`、以降に `spec-reviewer` の報告を変更せずに書く。
+- 同じPRに `harness:review` コメントがすでにあれば、投稿しない（`spec-reviewer` も呼ばない）。
+- `NEEDS_FIX` でも、Implementer への差し戻しはしない。判定を通知に載せて止まる。`MERGE_OK` でもマージしない。
 
 - どの結果でも、`attention` に並んだタスク（ほかの `WAIT_GATE` / `ESCALATE`）を報告に含める。
 - 報告の最初の行は、スクリプトの `summary`（例: `RUN #53 (implementer)`）にする。
@@ -55,17 +71,18 @@ node scripts/harness/next-task.js --issues "$DIR/issues.json" --branches "$DIR/b
 ```bash
 node scripts/harness/notify.js --event WAIT_GATE --issue <issue>
 node scripts/harness/notify.js --event ESCALATE --issue <issue>
-node scripts/harness/notify.js --event TASK_DONE --issue <issue> --pr <PR番号>
+node scripts/harness/notify.js --event TASK_DONE --issue <issue> --pr <PR番号> --review <MERGE_OK|NEEDS_FIX>
 ```
 
 - 通知するのは、2. の結果で選ばれた1つのIssueだけ。`attention` のタスクには通知しない（それぞれが選ばれたときに通知する）。
+- `--review` は `TASK_DONE` のときだけ付ける。`spec-reviewer` の判定が読み取れなかったとき・呼べなかったときは付けない（通知には「レビュー未実施」と載る）。
 - 出力は1行のJSON（`{"sent", "skipped", "actions", "errors"}`）。`skipped: true` は送信済み（同じ通知がすでにある）という意味で、失敗ではない。
 - 終了コードが 1 なら、`errors` を報告に含める。通知を送り直すために別の手段（`gh api` など）は使わない。
 
 ## 禁止事項
 
 - 2つ以上のタスクに手を付ける。`RUN` の後に、もう一度スクリプトを実行して次のタスクへ進まない。
-- 着手済みのタスクを再開する（再開は人が判断する）。
+- 着手済みのタスクを再開する（再開は人が判断する）。`NEEDS_FIX` の自動差し戻しもここに含む。
 - 自分でファイルを変更する、ブランチ・PRを作る（作業は Implementer だけが行う）。
 - `gate:approved` ラベルを付ける・外す、`## gate承認` コメントを書く、PRをマージする。
 - Issue・PR・コメントに、`@` + `claude` のメンション文字列を書く。

@@ -1,6 +1,6 @@
 ---
 name: spec-reviewer
-description: PRの差分を docs/specs/ の仕様書と照合してレビューする。人がマージ前に呼び出す。コードは変更しない
+description: PRの差分を docs/specs/ の仕様書と照合してレビューする。`/next-task` がPR作成後に自動で呼ぶ（人が手動で呼び直してもよい）。コードは変更しない
 tools: Read, Grep, Glob, Bash
 ---
 
@@ -19,6 +19,6 @@ tools: Read, Grep, Glob, Bash
    | CLAUDE.mdの「やってはいけないこと」への抵触 | `--no-verify`、`main` への直接push、force push、`.env`・鍵ファイルの読み書き・コミットなど、禁止事項に該当する変更がないか |
    | 1PR1目的 | CLAUDE.mdの「変更は小さく保つ。1つのPRで1つのことだけを行う」を満たしているか。無関係な変更が混ざっていないか |
 
-4. 最後に「マージしてよい／直してからマージ」の判定を、次の固定書式で出力の最終行に書く。マージは人が行う
+4. 最後に「マージしてよい／直してからマージ」の判定を、次の固定書式で出力の最終行に書く。マージは人が行う（自動ではマージしない）
    - 問題がなければ `REVIEW: MERGE_OK`
    - 指摘があれば `REVIEW: NEEDS_FIX`
