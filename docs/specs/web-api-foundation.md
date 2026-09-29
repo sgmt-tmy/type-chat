@@ -261,54 +261,54 @@ export function UserMenu(props: UserMenuProps): React.JSX.Element;
 
 エラー応答（`src/server/http.ts`）
 
-- [ ] `errorResponse(new DomainError("validation", "文言"))` のステータスが 400、本文が `{ error: { code: "validation", message: "文言" } }` である
-- [ ] `errorResponse` が `DomainError` の `forbidden` を 403、本文の `code` を `"forbidden"` にする
-- [ ] `errorResponse` が `DomainError` の `not_found` を 404、本文の `code` を `"not_found"` にする
-- [ ] `errorResponse` が `DomainError` の `conflict` を 409、本文の `code` を `"conflict"` にする
-- [ ] `errorResponse(new UnauthenticatedError())` のステータスが 401、本文が `{ error: { code: "unauthenticated", message: "利用を開始してください" } }` である
-- [ ] `errorResponse(new Error("SQLITE_CONSTRAINT: secret"))` のステータスが 500、本文が `{ error: { code: "internal", message: "サーバーでエラーが発生しました" } }` で、本文に `SQLITE_CONSTRAINT` を含まない
-- [ ] `errorResponse` が返す応答の `Content-Type` が `application/json` である
-- [ ] `readJsonBody` に JSON として読めない本文の `Request` を渡すと、`handleApi` の応答が 400（`code: "validation"`、`message: "リクエストの形式が正しくありません"`）になる
-- [ ] `jsonResponse({ at: new Date("2026-09-28T12:34:56.789Z") })` の本文の `at` が文字列 `"2026-09-28T12:34:56.789Z"` である
+- [x] `errorResponse(new DomainError("validation", "文言"))` のステータスが 400、本文が `{ error: { code: "validation", message: "文言" } }` である
+- [x] `errorResponse` が `DomainError` の `forbidden` を 403、本文の `code` を `"forbidden"` にする
+- [x] `errorResponse` が `DomainError` の `not_found` を 404、本文の `code` を `"not_found"` にする
+- [x] `errorResponse` が `DomainError` の `conflict` を 409、本文の `code` を `"conflict"` にする
+- [x] `errorResponse(new UnauthenticatedError())` のステータスが 401、本文が `{ error: { code: "unauthenticated", message: "利用を開始してください" } }` である
+- [x] `errorResponse(new Error("SQLITE_CONSTRAINT: secret"))` のステータスが 500、本文が `{ error: { code: "internal", message: "サーバーでエラーが発生しました" } }` で、本文に `SQLITE_CONSTRAINT` を含まない
+- [x] `errorResponse` が返す応答の `Content-Type` が `application/json` である
+- [x] `readJsonBody` に JSON として読めない本文の `Request` を渡すと、`handleApi` の応答が 400（`code: "validation"`、`message: "リクエストの形式が正しくありません"`）になる
+- [x] `jsonResponse({ at: new Date("2026-09-28T12:34:56.789Z") })` の本文の `at` が文字列 `"2026-09-28T12:34:56.789Z"` である
 
 利用者の識別（`src/server/session.ts`）
 
-- [ ] `buildUserCookie(id)` の値が `type_chat_user_id=<id>` で始まり、値が利用者IDそのもの（署名などを付けない）である
-- [ ] `buildUserCookie(id)` の値に `HttpOnly`・`SameSite=Lax`・`Path=/`・`Max-Age=31536000` が含まれる
-- [ ] `buildClearUserCookie()` の値が `type_chat_user_id=` で始まり、`Max-Age=0` と `Path=/` を含む
-- [ ] Cookie ヘッダーのない `Request` で `getCurrentUser` を呼ぶと `null` が返る
-- [ ] 登録済みの利用者のIDを `type_chat_user_id` に入れた `Request` で `getCurrentUser` を呼ぶと、その利用者が返る
-- [ ] 存在しない利用者のID（UUID の形）を Cookie に入れた `Request` で `getCurrentUser` を呼ぶと `null` が返る
-- [ ] UUID の形でない値を Cookie に入れた `Request` で `getCurrentUser` を呼ぶと `null` が返る
-- [ ] Cookie ヘッダーのない `Request` で `requireCurrentUser` を呼ぶ処理を `handleApi` で包むと、401（`code: "unauthenticated"`）の応答になる
-- [ ] Cookie のない状態で `getCurrentUserInPage` を呼ぶと `null` が返る（`cookies` を差し替える）
-- [ ] 登録済みの利用者の Cookie がある状態で `getCurrentUserInPage` を呼ぶと、その利用者が返る
-- [ ] Cookie のない状態で `requireCurrentUserInPage` を呼ぶと、`redirect("/start")` が呼ばれる（`redirect` を差し替える）
+- [x] `buildUserCookie(id)` の値が `type_chat_user_id=<id>` で始まり、値が利用者IDそのもの（署名などを付けない）である
+- [x] `buildUserCookie(id)` の値に `HttpOnly`・`SameSite=Lax`・`Path=/`・`Max-Age=31536000` が含まれる
+- [x] `buildClearUserCookie()` の値が `type_chat_user_id=` で始まり、`Max-Age=0` と `Path=/` を含む
+- [x] Cookie ヘッダーのない `Request` で `getCurrentUser` を呼ぶと `null` が返る
+- [x] 登録済みの利用者のIDを `type_chat_user_id` に入れた `Request` で `getCurrentUser` を呼ぶと、その利用者が返る
+- [x] 存在しない利用者のID（UUID の形）を Cookie に入れた `Request` で `getCurrentUser` を呼ぶと `null` が返る
+- [x] UUID の形でない値を Cookie に入れた `Request` で `getCurrentUser` を呼ぶと `null` が返る
+- [x] Cookie ヘッダーのない `Request` で `requireCurrentUser` を呼ぶ処理を `handleApi` で包むと、401（`code: "unauthenticated"`）の応答になる
+- [x] Cookie のない状態で `getCurrentUserInPage` を呼ぶと `null` が返る（`cookies` を差し替える）
+- [x] 登録済みの利用者の Cookie がある状態で `getCurrentUserInPage` を呼ぶと、その利用者が返る
+- [x] Cookie のない状態で `requireCurrentUserInPage` を呼ぶと、`redirect("/start")` が呼ばれる（`redirect` を差し替える）
 
 利用者名（`src/user.ts`）
 
-- [ ] `createUser` に30文字ちょうどの名前を渡すと、その名前の `User` が返る
-- [ ] `createUser` に前後の空白を除いて30文字の名前を渡すと、トリムされた名前の `User` が返る
-- [ ] `createUser` に31文字の名前を渡すと、`code` が `"validation"`、文言が `ユーザー名は30文字以内で入力してください` の `DomainError` が投げられる
-- [ ] `createUser` にトリム後が空の名前を渡すと、`code` が `"validation"`、文言が `ユーザー名は空にできません` の `DomainError` が投げられる
+- [x] `createUser` に30文字ちょうどの名前を渡すと、その名前の `User` が返る
+- [x] `createUser` に前後の空白を除いて30文字の名前を渡すと、トリムされた名前の `User` が返る
+- [x] `createUser` に31文字の名前を渡すと、`code` が `"validation"`、文言が `ユーザー名は30文字以内で入力してください` の `DomainError` が投げられる
+- [x] `createUser` にトリム後が空の名前を渡すと、`code` が `"validation"`、文言が `ユーザー名は空にできません` の `DomainError` が投げられる
 
 利用者のAPI
 
-- [ ] 利用者が0人のとき、`GET /api/users` が 200 と `{ users: [] }` を返す
-- [ ] `GET /api/users` が、登録した利用者を登録順に `{ id, name }` の配列で返す
-- [ ] `POST /api/users` に `{ name: "  たろう  " }` を送ると、201 と `{ user: { id, name: "たろう" } }` が返り、`GET /api/users` にその利用者が含まれる
-- [ ] `POST /api/users` の応答の `Set-Cookie` が、作った利用者の `id` を値とし、`HttpOnly`・`SameSite=Lax`・`Path=/`・`Max-Age=31536000` を含む
-- [ ] `POST /api/users` に空白だけの名前を送ると、400（`code: "validation"`）が返り、利用者が増えない
-- [ ] `POST /api/users` に31文字の名前を送ると、400（`code: "validation"`、`message: "ユーザー名は30文字以内で入力してください"`）が返る
-- [ ] `POST /api/users` に `name` のない本文を送ると、400（`code: "validation"`、`message: "リクエストの形式が正しくありません"`）が返る
-- [ ] 登録済みの名前と同じ名前で `POST /api/users` を送ると、409（`code: "conflict"`、`message: "その名前はすでに使われています"`）が返り、利用者が増えず、`Set-Cookie` がない
-- [ ] 登録済みの名前の前後に空白を付けた名前で `POST /api/users` を送ると、409（`code: "conflict"`）が返る
-- [ ] 登録済みの名前と大文字・小文字だけが違う名前で `POST /api/users` を送ると、201 で登録できる
-- [ ] `PUT /api/session` に登録済みの利用者の `userId` を送ると、200 と `{ user: { id, name } }` が返り、`Set-Cookie` がその利用者の `id` を値とする
-- [ ] `PUT /api/session` に存在しない `userId` を送ると、404（`code: "not_found"`、`message: "利用者が見つかりません"`）が返り、`Set-Cookie` がない
-- [ ] `PUT /api/session` に `userId` のない本文を送ると、400（`code: "validation"`）が返る
-- [ ] `DELETE /api/session` が 204 を返し、`Set-Cookie` が `type_chat_user_id=` で始まり `Max-Age=0` を含む
-- [ ] Cookie のない `Request` で `DELETE /api/session` を呼んでも 204 が返る
+- [x] 利用者が0人のとき、`GET /api/users` が 200 と `{ users: [] }` を返す
+- [x] `GET /api/users` が、登録した利用者を登録順に `{ id, name }` の配列で返す
+- [x] `POST /api/users` に `{ name: "  たろう  " }` を送ると、201 と `{ user: { id, name: "たろう" } }` が返り、`GET /api/users` にその利用者が含まれる
+- [x] `POST /api/users` の応答の `Set-Cookie` が、作った利用者の `id` を値とし、`HttpOnly`・`SameSite=Lax`・`Path=/`・`Max-Age=31536000` を含む
+- [x] `POST /api/users` に空白だけの名前を送ると、400（`code: "validation"`）が返り、利用者が増えない
+- [x] `POST /api/users` に31文字の名前を送ると、400（`code: "validation"`、`message: "ユーザー名は30文字以内で入力してください"`）が返る
+- [x] `POST /api/users` に `name` のない本文を送ると、400（`code: "validation"`、`message: "リクエストの形式が正しくありません"`）が返る
+- [x] 登録済みの名前と同じ名前で `POST /api/users` を送ると、409（`code: "conflict"`、`message: "その名前はすでに使われています"`）が返り、利用者が増えず、`Set-Cookie` がない
+- [x] 登録済みの名前の前後に空白を付けた名前で `POST /api/users` を送ると、409（`code: "conflict"`）が返る
+- [x] 登録済みの名前と大文字・小文字だけが違う名前で `POST /api/users` を送ると、201 で登録できる
+- [x] `PUT /api/session` に登録済みの利用者の `userId` を送ると、200 と `{ user: { id, name } }` が返り、`Set-Cookie` がその利用者の `id` を値とする
+- [x] `PUT /api/session` に存在しない `userId` を送ると、404（`code: "not_found"`、`message: "利用者が見つかりません"`）が返り、`Set-Cookie` がない
+- [x] `PUT /api/session` に `userId` のない本文を送ると、400（`code: "validation"`）が返る
+- [x] `DELETE /api/session` が 204 を返し、`Set-Cookie` が `type_chat_user_id=` で始まり `Max-Age=0` を含む
+- [x] Cookie のない `Request` で `DELETE /api/session` を呼んでも 204 が返る
 
 ### 画面とAPIクライアント
 
