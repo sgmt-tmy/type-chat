@@ -5,11 +5,9 @@ import { toast } from "sonner";
 import { apiFetch } from "@/lib/api-client";
 import type { GroupMemberDetail } from "../server/groups";
 import { ChatHeader } from "./chat-header";
+import { MESSAGE_INPUT_ID, MessageComposer } from "./message-composer";
 import { type ChatMessage, MessageList } from "./message-list";
 import { useLiveEvents } from "./use-live-events";
-
-// 投稿フォーム（message-composer.tsx の MESSAGE_INPUT_ID）を足すときに、import へ置き換える
-const MESSAGE_INPUT_ID = "message-input";
 
 export type ChatViewProps = {
   groupId: string;
@@ -63,6 +61,13 @@ export function ChatView({
     request,
   ]);
 
+  const addMessage = useCallback((message: ChatMessage) => {
+    setMessages((current) =>
+      current.some((m) => m.id === message.id) ? current : sortBySentAt([...current, message]),
+    );
+  }, [
+  ]);
+
   useLiveEvents({
     handlers: {
       "message.created": (data) => {
@@ -75,11 +80,7 @@ export function ChatView({
           void request();
           return;
         }
-        setMessages((current) =>
-          current.some((m) => m.id === message.id)
-            ? current
-            : sortBySentAt([...current, { ...message, senderName }]),
-        );
+        addMessage({ ...message, senderName });
       },
     },
     onReconnect: () => void request(),
@@ -95,6 +96,7 @@ export function ChatView({
         onRetry={() => void request()}
         onStartWriting={() => document.getElementById(MESSAGE_INPUT_ID)?.focus()}
       />
+      <MessageComposer groupId={groupId} onSent={addMessage} />
     </div>
   );
 }

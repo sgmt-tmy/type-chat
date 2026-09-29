@@ -174,4 +174,55 @@ describe("ChatView", () => {
       expect(source).not.toContain("setTimeout");
     }
   });
+
+  describe("投稿フォームとの組み込み", () => {
+    const mine = m("9", "me", "わたし", 9);
+    function post(result: unknown) {
+      apiFetch.mockImplementation((_url: string, init?: { method?: string }) =>
+        Promise.resolve(init?.method === "POST" ? result : ok([m("1", "u2", "はなこ", 1)])),
+      );
+    }
+
+    it("主操作（bg-primary）のボタンは「送信」だけ", async () => {
+      apiFetch.mockResolvedValue(ok([m("1", "u2", "はなこ", 1)]));
+      renderView();
+      await screen.findByText("text-1");
+      const primary = screen
+        .getAllByRole("button")
+        .filter((button) => button.className.includes("bg-primary"));
+      expect(primary.map((button) => button.textContent)).toEqual(["送信"]);
+    });
+
+    it("送信に成功すると末尾に描画され、同じ id の message.created で二重にならない", async () => {
+      post({ ok: true, data: { message: mine } });
+      renderView();
+      await screen.findByText("text-1");
+      await userEvent.type(screen.getByLabelText("メッセージ"), "hi{Enter}");
+      expect(await screen.findByText("text-9")).toBeTruthy();
+      created(mine);
+      expect(screen.getAllByRole("listitem")).toHaveLength(2);
+    });
+
+    it("先に message.created を受け取っても、送信の応答で二重にならない", async () => {
+      let resolve: (v: unknown) => void = () => {};
+      apiFetch.mockImplementation((_url: string, init?: { method?: string }) =>
+        init?.method === "POST"
+          ? new Promise((r) => (resolve = r))
+          : Promise.resolve(ok([m("1", "u2", "はなこ", 1)])),
+      );
+      renderView();
+      await screen.findByText("text-1");
+      await userEvent.type(screen.getByLabelText("メッセージ"), "hi{Enter}");
+      created(mine);
+      await act(async () => resolve({ ok: true, data: { message: mine } }));
+      expect(screen.getAllByRole("listitem")).toHaveLength(2);
+    });
+
+    it("空状態の「メッセージを入力する」で入力欄にフォーカスが移る", async () => {
+      apiFetch.mockResolvedValue(ok([]));
+      renderView();
+      await userEvent.click(await screen.findByRole("button", { name: "メッセージを入力する" }));
+      expect(screen.getByLabelText("メッセージ")).toHaveFocus();
+    });
+  });
 });
