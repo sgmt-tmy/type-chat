@@ -358,7 +358,7 @@ Client Component。
 - [x] 取り直しの応答を待っている間、表示中の一覧が残り、`Skeleton` に戻らない
 - [x] 取り直しを2回続けて始め、2回目の応答が先に届いた後に1回目の応答が届いても、一覧が2回目の応答の内容のままである
 - [x] 取り直しが失敗すると、`toast.error` がその `message` で呼ばれ、表示中の一覧が残る
-- [ ] `src/components/chat-view.tsx`・`src/components/message-list.tsx` の内容に、`setInterval` と `setTimeout` が含まれない（ファイルを読んで検査する）
+- [x] `src/components/chat-view.tsx`・`src/components/message-list.tsx` の内容に、`setInterval` と `setTimeout` が含まれない（ファイルを読んで検査する）
 
 ### 投稿フォーム
 
