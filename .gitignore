@@ -15,3 +15,8 @@ coverage/
 *.db
 *.sqlite
 *.sqlite3
+# Next.js の生成物
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
