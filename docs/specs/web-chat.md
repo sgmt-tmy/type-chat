@@ -272,38 +272,38 @@ Client Component。
 
 ユースケース（`src/server/messages.ts`）
 
-- [ ] `listMessagesOfGroup` が、そのグループのメッセージを `sentAt` の昇順で全件返す
-- [ ] `listMessagesOfGroup` の各要素の `senderName` が、`senderId` の利用者の名前である
-- [ ] メンバーから外された利用者の過去のメッセージも、`listMessagesOfGroup` の `senderName` がその利用者の名前になる
-- [ ] 利用者が存在しない `senderId` のメッセージは、`listMessagesOfGroup` の `senderName` が `不明な利用者` になる
-- [ ] メッセージのないグループで `listMessagesOfGroup` を呼ぶと、空配列が返る
-- [ ] `listMessagesOfGroup` にメンバーでない利用者IDを渡すと、`code` が `"not_found"`、文言が `グループが見つかりません` の `DomainError` が投げられる
-- [ ] `listMessagesOfGroup` に存在しないグループIDを渡すと、`code` が `"not_found"` の `DomainError` が投げられる
-- [ ] `postMessageByUser(…, groupId, "u1", "  こんにちは  ")` が、`text` が `こんにちは`、`groupId` がそのグループの `id`、`senderId` が `u1`、`senderName` が `u1` の利用者の名前のメッセージを返す
-- [ ] `postMessageByUser` で投稿したメッセージが、`listByGroup` で取り出せる
-- [ ] `postMessageByUser` で投稿すると、`subscribe` したメンバー全員（投稿者を含む）のリスナーが、`type` が `message.created`、`data.groupId` がそのグループの `id`、`data.message.id` が返したメッセージの `id` のイベントで1回ずつ呼ばれる
-- [ ] `postMessageByUser` で投稿しても、`subscribe` したメンバーでない利用者のリスナーは呼ばれない
-- [ ] `postMessageByUser` に空白だけの本文を渡すと、`code` が `"validation"`、文言が `メッセージは空にできません` の `DomainError` が投げられ、保存されず、イベントが発行されない
-- [ ] `postMessageByUser` に1001文字の本文を渡すと、`code` が `"validation"`、文言が `メッセージは1000文字以内にしてください` の `DomainError` が投げられ、保存されず、イベントが発行されない
-- [ ] `postMessageByUser` にメンバーでない利用者IDを渡すと、`code` が `"not_found"`、文言が `グループが見つかりません` の `DomainError` が投げられ（`forbidden` ではない）、保存されず、イベントが発行されない
+- [x] `listMessagesOfGroup` が、そのグループのメッセージを `sentAt` の昇順で全件返す
+- [x] `listMessagesOfGroup` の各要素の `senderName` が、`senderId` の利用者の名前である
+- [x] メンバーから外された利用者の過去のメッセージも、`listMessagesOfGroup` の `senderName` がその利用者の名前になる
+- [x] 利用者が存在しない `senderId` のメッセージは、`listMessagesOfGroup` の `senderName` が `不明な利用者` になる
+- [x] メッセージのないグループで `listMessagesOfGroup` を呼ぶと、空配列が返る
+- [x] `listMessagesOfGroup` にメンバーでない利用者IDを渡すと、`code` が `"not_found"`、文言が `グループが見つかりません` の `DomainError` が投げられる
+- [x] `listMessagesOfGroup` に存在しないグループIDを渡すと、`code` が `"not_found"` の `DomainError` が投げられる
+- [x] `postMessageByUser(…, groupId, "u1", "  こんにちは  ")` が、`text` が `こんにちは`、`groupId` がそのグループの `id`、`senderId` が `u1`、`senderName` が `u1` の利用者の名前のメッセージを返す
+- [x] `postMessageByUser` で投稿したメッセージが、`listByGroup` で取り出せる
+- [x] `postMessageByUser` で投稿すると、`subscribe` したメンバー全員（投稿者を含む）のリスナーが、`type` が `message.created`、`data.groupId` がそのグループの `id`、`data.message.id` が返したメッセージの `id` のイベントで1回ずつ呼ばれる
+- [x] `postMessageByUser` で投稿しても、`subscribe` したメンバーでない利用者のリスナーは呼ばれない
+- [x] `postMessageByUser` に空白だけの本文を渡すと、`code` が `"validation"`、文言が `メッセージは空にできません` の `DomainError` が投げられ、保存されず、イベントが発行されない
+- [x] `postMessageByUser` に1001文字の本文を渡すと、`code` が `"validation"`、文言が `メッセージは1000文字以内にしてください` の `DomainError` が投げられ、保存されず、イベントが発行されない
+- [x] `postMessageByUser` にメンバーでない利用者IDを渡すと、`code` が `"not_found"`、文言が `グループが見つかりません` の `DomainError` が投げられ（`forbidden` ではない）、保存されず、イベントが発行されない
 
 `GET`・`POST /api/groups/[groupId]/messages`
 
-- [ ] メンバーの利用者で `GET /api/groups/[groupId]/messages` を呼ぶと、200 と `{ messages: [...] }` が返り、`sentAt` の昇順に並ぶ
-- [ ] `GET /api/groups/[groupId]/messages` の各要素が `id`・`groupId`・`senderId`・`senderName`・`text`・`sentAt` を持ち、`sentAt` が ISO 8601 の文字列である
-- [ ] メッセージのないグループで `GET /api/groups/[groupId]/messages` を呼ぶと、200 と `{ messages: [] }` が返る
-- [ ] メンバーでない利用者で `GET /api/groups/[groupId]/messages` を呼ぶと、404（`code: "not_found"`、`message: "グループが見つかりません"`）が返る
-- [ ] 存在しないID（UUID の形）で `GET /api/groups/[groupId]/messages` を呼ぶと、メンバーでない利用者への応答と同じステータスと本文の 404 が返る
-- [ ] Cookie のない `Request` で `GET /api/groups/[groupId]/messages` を呼ぶと、401（`code: "unauthenticated"`）が返る
-- [ ] `POST /api/groups/[groupId]/messages` に `{ text: "  こんにちは  " }` を送ると、201 と `{ message: { id, groupId, senderId: <現在の利用者のid>, senderName: <現在の利用者の名前>, text: "こんにちは", sentAt } }` が返る
-- [ ] `POST` で投稿したメッセージが、同じグループの `GET /api/groups/[groupId]/messages` の末尾に含まれる
-- [ ] `POST` に成功すると、`subscribe` したメンバーのリスナーが、応答の `message.id` と同じ `id` の `message.created` のイベントで呼ばれる
-- [ ] `POST` に空白だけの本文を送ると、400（`code: "validation"`、`message: "メッセージは空にできません"`）が返り、メッセージが増えない
-- [ ] `POST` に1001文字の本文を送ると、400（`code: "validation"`、`message: "メッセージは1000文字以内にしてください"`）が返り、メッセージが増えない
-- [ ] `POST` に `text` のない本文を送ると、400（`code: "validation"`、`message: "リクエストの形式が正しくありません"`）が返る
-- [ ] メンバーでない利用者で `POST` を呼ぶと、404（`code: "not_found"`、`message: "グループが見つかりません"`）が返り、メッセージが増えず、イベントが発行されない
-- [ ] 存在しないID（UUID の形）で `POST` を呼ぶと、404（`code: "not_found"`）が返る
-- [ ] Cookie のない `Request` で `POST` を呼ぶと、401（`code: "unauthenticated"`）が返り、メッセージが増えない
+- [x] メンバーの利用者で `GET /api/groups/[groupId]/messages` を呼ぶと、200 と `{ messages: [...] }` が返り、`sentAt` の昇順に並ぶ
+- [x] `GET /api/groups/[groupId]/messages` の各要素が `id`・`groupId`・`senderId`・`senderName`・`text`・`sentAt` を持ち、`sentAt` が ISO 8601 の文字列である
+- [x] メッセージのないグループで `GET /api/groups/[groupId]/messages` を呼ぶと、200 と `{ messages: [] }` が返る
+- [x] メンバーでない利用者で `GET /api/groups/[groupId]/messages` を呼ぶと、404（`code: "not_found"`、`message: "グループが見つかりません"`）が返る
+- [x] 存在しないID（UUID の形）で `GET /api/groups/[groupId]/messages` を呼ぶと、メンバーでない利用者への応答と同じステータスと本文の 404 が返る
+- [x] Cookie のない `Request` で `GET /api/groups/[groupId]/messages` を呼ぶと、401（`code: "unauthenticated"`）が返る
+- [x] `POST /api/groups/[groupId]/messages` に `{ text: "  こんにちは  " }` を送ると、201 と `{ message: { id, groupId, senderId: <現在の利用者のid>, senderName: <現在の利用者の名前>, text: "こんにちは", sentAt } }` が返る
+- [x] `POST` で投稿したメッセージが、同じグループの `GET /api/groups/[groupId]/messages` の末尾に含まれる
+- [x] `POST` に成功すると、`subscribe` したメンバーのリスナーが、応答の `message.id` と同じ `id` の `message.created` のイベントで呼ばれる
+- [x] `POST` に空白だけの本文を送ると、400（`code: "validation"`、`message: "メッセージは空にできません"`）が返り、メッセージが増えない
+- [x] `POST` に1001文字の本文を送ると、400（`code: "validation"`、`message: "メッセージは1000文字以内にしてください"`）が返り、メッセージが増えない
+- [x] `POST` に `text` のない本文を送ると、400（`code: "validation"`、`message: "リクエストの形式が正しくありません"`）が返る
+- [x] メンバーでない利用者で `POST` を呼ぶと、404（`code: "not_found"`、`message: "グループが見つかりません"`）が返り、メッセージが増えず、イベントが発行されない
+- [x] 存在しないID（UUID の形）で `POST` を呼ぶと、404（`code: "not_found"`）が返る
+- [x] Cookie のない `Request` で `POST` を呼ぶと、401（`code: "unauthenticated"`）が返り、メッセージが増えない
 
 ### チャット画面の表示とリアルタイム受信
 
