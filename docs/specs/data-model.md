@@ -1,5 +1,5 @@
 ---
-status: approved        # draft / approved / implemented / deprecated
+status: implemented        # draft / approved / implemented / deprecated
 updated: 2026-09-29
 ---
 
@@ -137,46 +137,46 @@ export function sortMessagesByTime(messages: Message[]): Message[];
 
 ### DomainError
 
-- [ ] `new DomainError("validation", "文言")` が `Error` と `DomainError` の両方のインスタンスである
-- [ ] `new DomainError("forbidden", "文言")` の `code` が `"forbidden"`、`message` が `"文言"`、`name` が `"DomainError"` である
+- [x] `new DomainError("validation", "文言")` が `Error` と `DomainError` の両方のインスタンスである
+- [x] `new DomainError("forbidden", "文言")` の `code` が `"forbidden"`、`message` が `"文言"`、`name` が `"DomainError"` である
 
 ### Group の ID
 
-- [ ] `createGroup` が返す `Group` の `id` が UUID 形式の文字列である
-- [ ] `createGroup` を2回呼ぶと、異なる `id` の `Group` が返る
-- [ ] `addMember` が返す `Group` の `id` が元の `group.id` と同じである
-- [ ] `removeMember` が返す `Group` の `id` が元の `group.id` と同じである
-- [ ] `renameGroup` が返す `Group` の `id` が元の `group.id` と同じである
-- [ ] `transferOwner` が返す `Group` の `id` が元の `group.id` と同じである
+- [x] `createGroup` が返す `Group` の `id` が UUID 形式の文字列である
+- [x] `createGroup` を2回呼ぶと、異なる `id` の `Group` が返る
+- [x] `addMember` が返す `Group` の `id` が元の `group.id` と同じである
+- [x] `removeMember` が返す `Group` の `id` が元の `group.id` と同じである
+- [x] `renameGroup` が返す `Group` の `id` が元の `group.id` と同じである
+- [x] `transferOwner` が返す `Group` の `id` が元の `group.id` と同じである
 
 ### createGroup のグループ名の上限
 
-- [ ] `createGroup` に `GROUP_NAME_MAX_LENGTH`（50文字）ちょうどの名前を渡すと、その名前の `Group` が返る
-- [ ] `createGroup` に前後の空白を除いて50文字の名前を渡すと、トリムされた名前の `Group` が返る
-- [ ] `createGroup` に51文字の名前を渡すと、`code` が `"validation"`、文言が `グループ名は50文字以内で入力してください` の `DomainError` が投げられる
+- [x] `createGroup` に `GROUP_NAME_MAX_LENGTH`（50文字）ちょうどの名前を渡すと、その名前の `Group` が返る
+- [x] `createGroup` に前後の空白を除いて50文字の名前を渡すと、トリムされた名前の `Group` が返る
+- [x] `createGroup` に51文字の名前を渡すと、`code` が `"validation"`、文言が `グループ名は50文字以内で入力してください` の `DomainError` が投げられる
 
 ### Message の ID と投稿者ID
 
-- [ ] `createMessage(groupId, senderId, text)` が返す `Message` の `id` が UUID 形式の文字列である
-- [ ] `createMessage` を2回呼ぶと、異なる `id` の `Message` が返る
-- [ ] `createMessage` が返す `Message` の `groupId`・`senderId` が引数の値と同じである
-- [ ] `postMessageToGroup` が返す `Message` の `groupId` が `group.id` と同じである
-- [ ] `postMessageToGroup` が返す `Message` の `senderId` が引数の `senderId` と同じである
-- [ ] `renameGroup` で名前を変えたグループに投稿しても、変更前と同じ `groupId`（`group.id`）の `Message` が返る
+- [x] `createMessage(groupId, senderId, text)` が返す `Message` の `id` が UUID 形式の文字列である
+- [x] `createMessage` を2回呼ぶと、異なる `id` の `Message` が返る
+- [x] `createMessage` が返す `Message` の `groupId`・`senderId` が引数の値と同じである
+- [x] `postMessageToGroup` が返す `Message` の `groupId` が `group.id` と同じである
+- [x] `postMessageToGroup` が返す `Message` の `senderId` が引数の `senderId` と同じである
+- [x] `renameGroup` で名前を変えたグループに投稿しても、変更前と同じ `groupId`（`group.id`）の `Message` が返る
 
 ### エラーの種別
 
-- [ ] `createGroup` にトリム後が空の名前を渡すと、`code` が `"validation"`、文言が `グループ名は空にできません` の `DomainError` が投げられる
-- [ ] `removeMember` でオーナーを外そうとすると、`code` が `"conflict"`、文言が `オーナーは削除できません` の `DomainError` が投げられる
-- [ ] `renameGroup` をオーナー以外が実行すると、`code` が `"forbidden"`、文言が `グループ名の変更はオーナーのみ可能です` の `DomainError` が投げられる
-- [ ] `renameGroup` にトリム後が空の名前を渡すと、`code` が `"validation"`、文言が `グループ名は空にできません` の `DomainError` が投げられる
-- [ ] `renameGroup` に51文字の名前を渡すと、`code` が `"validation"`、文言が `グループ名は50文字以内で入力してください` の `DomainError` が投げられる
-- [ ] `transferOwner` をオーナー以外が実行すると、`code` が `"forbidden"`、文言が `オーナー権限の委譲はオーナーのみ可能です` の `DomainError` が投げられる
-- [ ] `transferOwner` で委譲先に現在のオーナーを指定すると、`code` が `"validation"`、文言が `委譲先が現在のオーナーと同じです` の `DomainError` が投げられる
-- [ ] `transferOwner` で委譲先にメンバーでないユーザーを指定すると、`code` が `"validation"`、文言が `委譲先はグループのメンバーである必要があります` の `DomainError` が投げられる
-- [ ] `createMessage` にトリム後が空の本文を渡すと、`code` が `"validation"`、文言が `メッセージは空にできません` の `DomainError` が投げられる
-- [ ] `createMessage` に1001文字の本文を渡すと、`code` が `"validation"`、文言が `メッセージは1000文字以内にしてください` の `DomainError` が投げられる
-- [ ] `postMessageToGroup` をメンバーでないユーザーが実行すると、`code` が `"forbidden"`、文言が `グループのメンバーではありません` の `DomainError` が投げられる
+- [x] `createGroup` にトリム後が空の名前を渡すと、`code` が `"validation"`、文言が `グループ名は空にできません` の `DomainError` が投げられる
+- [x] `removeMember` でオーナーを外そうとすると、`code` が `"conflict"`、文言が `オーナーは削除できません` の `DomainError` が投げられる
+- [x] `renameGroup` をオーナー以外が実行すると、`code` が `"forbidden"`、文言が `グループ名の変更はオーナーのみ可能です` の `DomainError` が投げられる
+- [x] `renameGroup` にトリム後が空の名前を渡すと、`code` が `"validation"`、文言が `グループ名は空にできません` の `DomainError` が投げられる
+- [x] `renameGroup` に51文字の名前を渡すと、`code` が `"validation"`、文言が `グループ名は50文字以内で入力してください` の `DomainError` が投げられる
+- [x] `transferOwner` をオーナー以外が実行すると、`code` が `"forbidden"`、文言が `オーナー権限の委譲はオーナーのみ可能です` の `DomainError` が投げられる
+- [x] `transferOwner` で委譲先に現在のオーナーを指定すると、`code` が `"validation"`、文言が `委譲先が現在のオーナーと同じです` の `DomainError` が投げられる
+- [x] `transferOwner` で委譲先にメンバーでないユーザーを指定すると、`code` が `"validation"`、文言が `委譲先はグループのメンバーである必要があります` の `DomainError` が投げられる
+- [x] `createMessage` にトリム後が空の本文を渡すと、`code` が `"validation"`、文言が `メッセージは空にできません` の `DomainError` が投げられる
+- [x] `createMessage` に1001文字の本文を渡すと、`code` が `"validation"`、文言が `メッセージは1000文字以内にしてください` の `DomainError` が投げられる
+- [x] `postMessageToGroup` をメンバーでないユーザーが実行すると、`code` が `"forbidden"`、文言が `グループのメンバーではありません` の `DomainError` が投げられる
 
 ## 対象外
 

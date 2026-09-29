@@ -1,6 +1,6 @@
 ---
 status: implemented        # draft / approved / implemented / deprecated
-updated: 2026-09-24
+updated: 2026-09-29
 ---
 
 # グループへのメッセージ投稿
@@ -13,40 +13,12 @@ updated: 2026-09-24
 
 ## 入出力
 
-### 既存の型・関数（`src/group.ts`）
+### 型・関数（`src/group.ts`・`src/message.ts`）
 
-```ts
-type Group = {
-  name: string;
-  ownerId: string;
-  members: string[];
-};
-```
+`Group`・`Message` の型（`id`・`senderId` を含む）と `createMessage` のシグネチャは `docs/specs/data-model.md` を参照する。
 
 - グループへの投稿可否は `group.members.includes(userId)` で判定する。
-
-### 既存の型・関数（`src/message.ts`）
-
-```ts
-type Message = {
-  groupId: string;
-  text: string;
-  sentAt: Date;
-};
-
-const MESSAGE_MAX_LENGTH = 1000;
-
-function createMessage(
-  groupId: string,
-  text: string,
-  sentAt?: Date,
-): Message;
-```
-
-- `text` は前後の空白をトリムし、空文字なら例外、`MESSAGE_MAX_LENGTH`（1000文字）超過でも例外。
-- `Message` 型には投稿者を表すフィールドが存在しない。
-
-
+- `createMessage` は、`text` の前後の空白をトリムし、空文字なら例外、`MESSAGE_MAX_LENGTH`（1000文字）超過でも例外を投げる。
 
 ### 追加を想定する関数（本仕様の対象）
 
@@ -66,8 +38,7 @@ function postMessageToGroup(
   - `sentAt`: 省略可。省略時は `createMessage` 側のデフォルト（現在時刻）を使う
 - 処理
   - `senderId` が `group.members` に含まれない場合はエラーを投げる（メンバー以外は投稿不可）
-  - メンバーであれば `createMessage(group.name, text, sentAt)` を呼び出し、その結果（`Message`）を返す
-    - `groupId` に何を渡すか（`group.name` か、別途グループIDを導入するか）は既存コードにグループID相当のフィールドが無いため要検討。本仕様では暫定的に `group.name` をグループ識別子として扱う
+  - メンバーであれば `createMessage` を呼び出し、その結果（`Message`）を返す。`groupId` に `group.id`、`senderId` に投稿者IDを設定する（`docs/specs/data-model.md` を参照）
 - 出力
   - 成功時: 作成された `Message`
 - エラー
@@ -92,8 +63,7 @@ function postMessageToGroup(
 
 - メッセージの編集・削除
 - メッセージの永続化（DB保存など）や取得API
-- 投稿者情報を `Message` 型に保持すること（別仕様で検討）
-- グループの識別子（ID）を `Group` 型に追加すること（別仕様で検討。本仕様では `group.name` を暫定的に代用）
+- 投稿者情報・グループIDの保持（`docs/specs/data-model.md` で扱う）
 - 通知・既読管理
 
 
