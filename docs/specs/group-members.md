@@ -1,6 +1,6 @@
 ---
-status: draft        # draft / approved / implemented / deprecated
-updated: 2026-09-28
+status: approved        # draft / approved / implemented / deprecated
+updated: 2026-09-29
 ---
 
 # メンバーの追加（オーナー限定）と自己脱退

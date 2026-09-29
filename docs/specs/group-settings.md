@@ -1,6 +1,6 @@
 ---
-status: draft        # draft / approved / implemented / deprecated
-updated: 2026-09-28
+status: approved        # draft / approved / implemented / deprecated
+updated: 2026-09-29
 ---
 
 # グループ設定画面（グループ名の変更・オーナーの委譲）
