@@ -183,42 +183,42 @@ Client Component。
 
 ユースケース（`src/server/groups.ts`）
 
-- [ ] `createGroupByUser(groups, "u1", "  雑談  ")` が、`name` が `雑談`、`ownerId` が `u1`、`members` が `["u1"]` のグループを返し、`findById` でそのグループが取り出せる
-- [ ] `createGroupByUser` に空白だけの名前を渡すと、`code` が `"validation"`、文言が `グループ名は空にできません` の `DomainError` が投げられ、グループが保存されない
-- [ ] `createGroupByUser` に51文字の名前を渡すと、`code` が `"validation"`、文言が `グループ名は50文字以内で入力してください` の `DomainError` が投げられ、グループが保存されない
-- [ ] `createGroupByUser` を呼んでも、`subscribe` した作成者のリスナーが呼ばれない（イベントを発行しない）
-- [ ] `listGroupsOfUser` が、その利用者がメンバーのグループだけを返す
-- [ ] グループを A・B・C の順に作ると、`listGroupsOfUser` が C・B・A の順に返す
-- [ ] `listGroupsOfUser` の各要素の `memberCount` が、そのグループの `members` の数である
-- [ ] どのグループのメンバーでもない利用者で `listGroupsOfUser` を呼ぶと、空配列が返る
-- [ ] `findGroupAsMember` にメンバーの利用者IDを渡すと、そのグループが返る
-- [ ] `findGroupAsMember` にメンバーでない利用者IDを渡すと、`code` が `"not_found"`、文言が `グループが見つかりません` の `DomainError` が投げられる
-- [ ] `findGroupAsMember` に存在しないグループIDを渡すと、`code` が `"not_found"`、文言が `グループが見つかりません` の `DomainError` が投げられる
-- [ ] `getGroupDetail` が、`members` を参加順の `{ id, name }`（利用者の名前）の配列にした詳細を返す
-- [ ] 利用者が存在しないメンバーを含むグループで `getGroupDetail` を呼ぶと、そのメンバーの `name` が `不明な利用者` になる
-- [ ] `getGroupDetail` にメンバーでない利用者IDを渡すと、`code` が `"not_found"` の `DomainError` が投げられる
+- [x] `createGroupByUser(groups, "u1", "  雑談  ")` が、`name` が `雑談`、`ownerId` が `u1`、`members` が `["u1"]` のグループを返し、`findById` でそのグループが取り出せる
+- [x] `createGroupByUser` に空白だけの名前を渡すと、`code` が `"validation"`、文言が `グループ名は空にできません` の `DomainError` が投げられ、グループが保存されない
+- [x] `createGroupByUser` に51文字の名前を渡すと、`code` が `"validation"`、文言が `グループ名は50文字以内で入力してください` の `DomainError` が投げられ、グループが保存されない
+- [x] `createGroupByUser` を呼んでも、`subscribe` した作成者のリスナーが呼ばれない（イベントを発行しない）
+- [x] `listGroupsOfUser` が、その利用者がメンバーのグループだけを返す
+- [x] グループを A・B・C の順に作ると、`listGroupsOfUser` が C・B・A の順に返す
+- [x] `listGroupsOfUser` の各要素の `memberCount` が、そのグループの `members` の数である
+- [x] どのグループのメンバーでもない利用者で `listGroupsOfUser` を呼ぶと、空配列が返る
+- [x] `findGroupAsMember` にメンバーの利用者IDを渡すと、そのグループが返る
+- [x] `findGroupAsMember` にメンバーでない利用者IDを渡すと、`code` が `"not_found"`、文言が `グループが見つかりません` の `DomainError` が投げられる
+- [x] `findGroupAsMember` に存在しないグループIDを渡すと、`code` が `"not_found"`、文言が `グループが見つかりません` の `DomainError` が投げられる
+- [x] `getGroupDetail` が、`members` を参加順の `{ id, name }`（利用者の名前）の配列にした詳細を返す
+- [x] 利用者が存在しないメンバーを含むグループで `getGroupDetail` を呼ぶと、そのメンバーの `name` が `不明な利用者` になる
+- [x] `getGroupDetail` にメンバーでない利用者IDを渡すと、`code` が `"not_found"` の `DomainError` が投げられる
 
 `GET`・`POST /api/groups`
 
-- [ ] `POST /api/groups` に `{ name: "  雑談  " }` を送ると、201 と `{ group: { id, name: "雑談", ownerId: <現在の利用者のid>, members: [<現在の利用者のid>] } }` が返る
-- [ ] `POST /api/groups` で作ったグループが、同じ利用者の `GET /api/groups` に含まれる
-- [ ] `POST /api/groups` に空白だけの名前を送ると、400（`code: "validation"`、`message: "グループ名は空にできません"`）が返り、グループが増えない
-- [ ] `POST /api/groups` に51文字の名前を送ると、400（`code: "validation"`、`message: "グループ名は50文字以内で入力してください"`）が返り、グループが増えない
-- [ ] `POST /api/groups` に `name` のない本文を送ると、400（`code: "validation"`、`message: "リクエストの形式が正しくありません"`）が返る
-- [ ] Cookie のない `Request` で `POST /api/groups` を呼ぶと、401（`code: "unauthenticated"`）が返り、グループが増えない
-- [ ] どのグループのメンバーでもない利用者で `GET /api/groups` を呼ぶと、200 と `{ groups: [] }` が返る
-- [ ] `GET /api/groups` が、自分がメンバーのグループだけを返し、ほかの利用者だけがメンバーのグループを含まない
-- [ ] `GET /api/groups` が、グループを作成日時の新しい順に返す
-- [ ] `GET /api/groups` の各要素が `id`・`name`・`ownerId`・`memberCount` を持つ
-- [ ] Cookie のない `Request` で `GET /api/groups` を呼ぶと、401（`code: "unauthenticated"`）が返る
+- [x] `POST /api/groups` に `{ name: "  雑談  " }` を送ると、201 と `{ group: { id, name: "雑談", ownerId: <現在の利用者のid>, members: [<現在の利用者のid>] } }` が返る
+- [x] `POST /api/groups` で作ったグループが、同じ利用者の `GET /api/groups` に含まれる
+- [x] `POST /api/groups` に空白だけの名前を送ると、400（`code: "validation"`、`message: "グループ名は空にできません"`）が返り、グループが増えない
+- [x] `POST /api/groups` に51文字の名前を送ると、400（`code: "validation"`、`message: "グループ名は50文字以内で入力してください"`）が返り、グループが増えない
+- [x] `POST /api/groups` に `name` のない本文を送ると、400（`code: "validation"`、`message: "リクエストの形式が正しくありません"`）が返る
+- [x] Cookie のない `Request` で `POST /api/groups` を呼ぶと、401（`code: "unauthenticated"`）が返り、グループが増えない
+- [x] どのグループのメンバーでもない利用者で `GET /api/groups` を呼ぶと、200 と `{ groups: [] }` が返る
+- [x] `GET /api/groups` が、自分がメンバーのグループだけを返し、ほかの利用者だけがメンバーのグループを含まない
+- [x] `GET /api/groups` が、グループを作成日時の新しい順に返す
+- [x] `GET /api/groups` の各要素が `id`・`name`・`ownerId`・`memberCount` を持つ
+- [x] Cookie のない `Request` で `GET /api/groups` を呼ぶと、401（`code: "unauthenticated"`）が返る
 
 `GET /api/groups/[groupId]`
 
-- [ ] メンバーの利用者で `GET /api/groups/[groupId]` を呼ぶと、200 と `{ group: { id, name, ownerId, members: [{ id, name }] } }` が返り、`members` にメンバーの利用者名が含まれる
-- [ ] メンバーでない利用者で `GET /api/groups/[groupId]` を呼ぶと、404（`code: "not_found"`、`message: "グループが見つかりません"`）が返る
-- [ ] 存在しないID（UUID の形）で `GET /api/groups/[groupId]` を呼ぶと、404（`code: "not_found"`、`message: "グループが見つかりません"`）が返る
-- [ ] メンバーでない利用者への応答と、存在しないIDへの応答の、ステータスと本文が同じである
-- [ ] Cookie のない `Request` で `GET /api/groups/[groupId]` を呼ぶと、401（`code: "unauthenticated"`）が返る
+- [x] メンバーの利用者で `GET /api/groups/[groupId]` を呼ぶと、200 と `{ group: { id, name, ownerId, members: [{ id, name }] } }` が返り、`members` にメンバーの利用者名が含まれる
+- [x] メンバーでない利用者で `GET /api/groups/[groupId]` を呼ぶと、404（`code: "not_found"`、`message: "グループが見つかりません"`）が返る
+- [x] 存在しないID（UUID の形）で `GET /api/groups/[groupId]` を呼ぶと、404（`code: "not_found"`、`message: "グループが見つかりません"`）が返る
+- [x] メンバーでない利用者への応答と、存在しないIDへの応答の、ステータスと本文が同じである
+- [x] Cookie のない `Request` で `GET /api/groups/[groupId]` を呼ぶと、401（`code: "unauthenticated"`）が返る
 
 ### ホーム画面
 
