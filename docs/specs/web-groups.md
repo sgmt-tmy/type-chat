@@ -1,5 +1,5 @@
 ---
-status: approved        # draft / approved / implemented / deprecated
+status: implemented       # draft / approved / implemented / deprecated
 updated: 2026-09-29
 ---
 
@@ -224,44 +224,44 @@ Client Component。
 
 ホーム（`src/app/page.tsx`）
 
-- [ ] 利用者の Cookie がない状態でホームを描画すると、`redirect("/start")` が呼ばれる
-- [ ] 利用者がいる状態でホームを描画すると、`h1`「グループ」が1つだけあり、「グループ名」の入力欄と「作成」ボタンがある
-- [ ] ホームのボタンのうち、クラスに `bg-primary` を含むもの（主操作）が「作成」だけである（一覧が空の状態で確かめる）
+- [x] 利用者の Cookie がない状態でホームを描画すると、`redirect("/start")` が呼ばれる
+- [x] 利用者がいる状態でホームを描画すると、`h1`「グループ」が1つだけあり、「グループ名」の入力欄と「作成」ボタンがある
+- [x] ホームのボタンのうち、クラスに `bg-primary` を含むもの（主操作）が「作成」だけである（一覧が空の状態で確かめる）
 
 作成フォーム（`src/components/create-group-form.tsx`）
 
-- [ ] `CreateGroupForm` の入力欄が、ラベル「グループ名」で取得でき、`id` が `CREATE_GROUP_NAME_INPUT_ID` である
-- [ ] `CreateGroupForm` でグループ名を入れて「作成」を押すと、`POST /api/groups` に `{ name }` が送られる
-- [ ] `CreateGroupForm` の入力欄で Enter キーを押すと、`POST /api/groups` が送られる
-- [ ] `CreateGroupForm` の送信中は「作成」ボタンが無効で、文言が「作成中…」になる
-- [ ] `CreateGroupForm` の作成が成功すると、`toast.success("グループを作成しました")` が呼ばれ、`router.push("/groups/<作成したグループの id>")` が呼ばれる
-- [ ] `CreateGroupForm` を空（空白だけを含む）のまま送信すると、APIを呼ばずに入力欄の直下に `グループ名は空にできません` が出て、入力欄が `aria-invalid="true"` になる
-- [ ] `CreateGroupForm` に51文字の名前を入れて送信すると、APIを呼ばずに入力欄の直下に `グループ名は50文字以内で入力してください` が出て、入力欄が `aria-invalid="true"` になる
-- [ ] 入力エラーを出している間、入力欄の `aria-describedby` がエラーの文言の要素を指す
-- [ ] 入力エラーを出した後に入力欄の値を変えると、エラーの文言が消え、`aria-invalid` が外れる
-- [ ] `CreateGroupForm` の作成が 400（`validation`）で失敗すると、APIの `message` が入力欄の直下に出る
-- [ ] `CreateGroupForm` の作成が通信エラーで失敗すると、`toast.error` がその `message` で呼ばれ、入力欄の直下にはエラーが出ず、`router.push` は呼ばれない
-- [ ] `CreateGroupForm` の作成が失敗した後、「作成」ボタンの文言が「作成」に戻り、入力欄の値が残っている
+- [x] `CreateGroupForm` の入力欄が、ラベル「グループ名」で取得でき、`id` が `CREATE_GROUP_NAME_INPUT_ID` である
+- [x] `CreateGroupForm` でグループ名を入れて「作成」を押すと、`POST /api/groups` に `{ name }` が送られる
+- [x] `CreateGroupForm` の入力欄で Enter キーを押すと、`POST /api/groups` が送られる
+- [x] `CreateGroupForm` の送信中は「作成」ボタンが無効で、文言が「作成中…」になる
+- [x] `CreateGroupForm` の作成が成功すると、`toast.success("グループを作成しました")` が呼ばれ、`router.push("/groups/<作成したグループの id>")` が呼ばれる
+- [x] `CreateGroupForm` を空（空白だけを含む）のまま送信すると、APIを呼ばずに入力欄の直下に `グループ名は空にできません` が出て、入力欄が `aria-invalid="true"` になる
+- [x] `CreateGroupForm` に51文字の名前を入れて送信すると、APIを呼ばずに入力欄の直下に `グループ名は50文字以内で入力してください` が出て、入力欄が `aria-invalid="true"` になる
+- [x] 入力エラーを出している間、入力欄の `aria-describedby` がエラーの文言の要素を指す
+- [x] 入力エラーを出した後に入力欄の値を変えると、エラーの文言が消え、`aria-invalid` が外れる
+- [x] `CreateGroupForm` の作成が 400（`validation`）で失敗すると、APIの `message` が入力欄の直下に出る
+- [x] `CreateGroupForm` の作成が通信エラーで失敗すると、`toast.error` がその `message` で呼ばれ、入力欄の直下にはエラーが出ず、`router.push` は呼ばれない
+- [x] `CreateGroupForm` の作成が失敗した後、「作成」ボタンの文言が「作成」に戻り、入力欄の値が残っている
 
 グループ一覧（`src/components/group-list.tsx`）
 
-- [ ] `GroupList` をマウントすると、`GET /api/groups` が1回呼ばれる
-- [ ] `GroupList` の最初の取得が終わるまで、`Skeleton` が描画され、一覧の領域が `aria-busy="true"` で、「まだグループがありません」は描画されない
-- [ ] `GroupList` がグループを2件受け取ると、API の順に2つの行が描画され、各行にグループ名と `メンバー <memberCount>人` が出る
-- [ ] `GroupList` の各行が、`href` が `/groups/<グループの id>` のリンクで、リンクの名前にグループ名が含まれる
-- [ ] `ownerId` が `currentUserId` と同じ行にだけ「オーナー」が出て、ほかの行には出ない
-- [ ] `GroupList` が0件を受け取ると、`h2`「まだグループがありません」と `グループ名を入力して、最初のグループを作りましょう` が描画される
-- [ ] 空状態の「グループ名を入力する」ボタンを押すと、`CreateGroupForm` の入力欄にフォーカスが移る（`CreateGroupForm` と `GroupList` を一緒に描画して確かめる）
-- [ ] 空状態の「グループ名を入力する」ボタンのクラスに `bg-primary` が含まれない
-- [ ] `GroupList` の最初の取得が失敗すると、`toast.error` がその `message` で呼ばれ、`グループを読み込めませんでした` と「再読み込み」ボタンが描画される
-- [ ] 「再読み込み」ボタンを押すと、`GET /api/groups` がもう1回呼ばれ、成功すれば一覧が描画される
-- [ ] `group.updated` のハンドラを呼ぶと、`GET /api/groups` がもう1回呼ばれ、新しい応答の一覧が描画される
-- [ ] `group.deleted` のハンドラを呼ぶと、`GET /api/groups` がもう1回呼ばれ、新しい応答で消えたグループの行が描画されなくなる
-- [ ] `onReconnect` を呼ぶと、`GET /api/groups` がもう1回呼ばれる
-- [ ] 取り直しの応答を待っている間、表示中の一覧が残り、`Skeleton` に戻らない
-- [ ] 取り直しを2回続けて始め、2回目の応答が先に届いた後に1回目の応答が届いても、一覧が2回目の応答の内容のままである
-- [ ] 取り直しが失敗すると、`toast.error` がその `message` で呼ばれ、表示中の一覧が残る
-- [ ] `src/components/group-list.tsx` の内容に、`setInterval` と `setTimeout` が含まれない（ファイルを読んで検査する）
+- [x] `GroupList` をマウントすると、`GET /api/groups` が1回呼ばれる
+- [x] `GroupList` の最初の取得が終わるまで、`Skeleton` が描画され、一覧の領域が `aria-busy="true"` で、「まだグループがありません」は描画されない
+- [x] `GroupList` がグループを2件受け取ると、API の順に2つの行が描画され、各行にグループ名と `メンバー <memberCount>人` が出る
+- [x] `GroupList` の各行が、`href` が `/groups/<グループの id>` のリンクで、リンクの名前にグループ名が含まれる
+- [x] `ownerId` が `currentUserId` と同じ行にだけ「オーナー」が出て、ほかの行には出ない
+- [x] `GroupList` が0件を受け取ると、`h2`「まだグループがありません」と `グループ名を入力して、最初のグループを作りましょう` が描画される
+- [x] 空状態の「グループ名を入力する」ボタンを押すと、`CreateGroupForm` の入力欄にフォーカスが移る（`CreateGroupForm` と `GroupList` を一緒に描画して確かめる）
+- [x] 空状態の「グループ名を入力する」ボタンのクラスに `bg-primary` が含まれない
+- [x] `GroupList` の最初の取得が失敗すると、`toast.error` がその `message` で呼ばれ、`グループを読み込めませんでした` と「再読み込み」ボタンが描画される
+- [x] 「再読み込み」ボタンを押すと、`GET /api/groups` がもう1回呼ばれ、成功すれば一覧が描画される
+- [x] `group.updated` のハンドラを呼ぶと、`GET /api/groups` がもう1回呼ばれ、新しい応答の一覧が描画される
+- [x] `group.deleted` のハンドラを呼ぶと、`GET /api/groups` がもう1回呼ばれ、新しい応答で消えたグループの行が描画されなくなる
+- [x] `onReconnect` を呼ぶと、`GET /api/groups` がもう1回呼ばれる
+- [x] 取り直しの応答を待っている間、表示中の一覧が残り、`Skeleton` に戻らない
+- [x] 取り直しを2回続けて始め、2回目の応答が先に届いた後に1回目の応答が届いても、一覧が2回目の応答の内容のままである
+- [x] 取り直しが失敗すると、`toast.error` がその `message` で呼ばれ、表示中の一覧が残る
+- [x] `src/components/group-list.tsx` の内容に、`setInterval` と `setTimeout` が含まれない（ファイルを読んで検査する）
 
 ## 対象外
 
