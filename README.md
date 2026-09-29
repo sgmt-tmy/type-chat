@@ -22,6 +22,12 @@ npm run setup:hooks
 git config core.hooksPath
 ```
 
+## 開発サーバーの起動
+```bash
+npm run dev
+```
+ブラウザで http://localhost:3000 を開く。本番相当のビルドと起動は `npm run build` と `npm start`。
+
 ## 検証（テスト・Lint・型チェック）
 ```bash
 npm run check

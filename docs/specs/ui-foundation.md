@@ -169,17 +169,17 @@ UI規約のうち機械判定できるものを、以後の画面の追加でも
 
 ### 土台（依存の導入と初期化）
 
-- [ ] `npm run build` が成功する
-- [ ] `tsconfig.json` の `compilerOptions.strict` が `true` である
-- [ ] `src/components/ui/` に、「土台のファイル」の表の12ファイル（`button.tsx`・`input.tsx`・`textarea.tsx`・`label.tsx`・`card.tsx`・`alert-dialog.tsx`・`dropdown-menu.tsx`・`select.tsx`・`sonner.tsx`・`badge.tsx`・`skeleton.tsx`・`separator.tsx`）がすべて存在する
-- [ ] `*.test.tsx` の中で `Button` を描画すると、`getByRole("button", { name: <ボタンの文言> })` で取得できる（jsdom で実行される）
-- [ ] `cn("px-2", "px-4")` が `"px-4"` を返す
-- [ ] `cn("a", false, undefined, "b")` が `"a b"` を返す
-- [ ] `components.json` の `aliases.ui` が `@/components/ui`、`aliases.utils` が `@/lib/utils` である
-- [ ] `src/app/globals.css` に `--background`・`--foreground`・`--primary`・`--muted-foreground`・`--destructive` の CSS 変数が定義されている
-- [ ] `RootLayout`（`src/app/layout.tsx`）の描画結果の `html` 要素の `lang` 属性が `ja` である
-- [ ] 仮の `src/app/page.tsx` を描画すると、`h1` が1つだけある
-- [ ] 既存の `src/*.test.ts` が変更なしで Node の環境で通る
+- [x] `npm run build` が成功する
+- [x] `tsconfig.json` の `compilerOptions.strict` が `true` である
+- [x] `src/components/ui/` に、「土台のファイル」の表の12ファイル（`button.tsx`・`input.tsx`・`textarea.tsx`・`label.tsx`・`card.tsx`・`alert-dialog.tsx`・`dropdown-menu.tsx`・`select.tsx`・`sonner.tsx`・`badge.tsx`・`skeleton.tsx`・`separator.tsx`）がすべて存在する
+- [x] `*.test.tsx` の中で `Button` を描画すると、`getByRole("button", { name: <ボタンの文言> })` で取得できる（jsdom で実行される）
+- [x] `cn("px-2", "px-4")` が `"px-4"` を返す
+- [x] `cn("a", false, undefined, "b")` が `"a b"` を返す
+- [x] `components.json` の `aliases.ui` が `@/components/ui`、`aliases.utils` が `@/lib/utils` である
+- [x] `src/app/globals.css` に `--background`・`--foreground`・`--primary`・`--muted-foreground`・`--destructive` の CSS 変数が定義されている
+- [x] `RootLayout`（`src/app/layout.tsx`）の描画結果の `html` 要素の `lang` 属性が `ja` である
+- [x] 仮の `src/app/page.tsx` を描画すると、`h1` が1つだけある
+- [x] 既存の `src/*.test.ts` が変更なしで Node の環境で通る
 
 ### 共通部品と規約テスト
 
