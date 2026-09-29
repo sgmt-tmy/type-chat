@@ -1,5 +1,5 @@
 ---
-status: approved        # draft / approved / implemented / deprecated
+status: implemented    # draft / approved / implemented / deprecated
 updated: 2026-09-29
 ---
 
@@ -183,25 +183,25 @@ UI規約のうち機械判定できるものを、以後の画面の追加でも
 
 ### 共通部品と規約テスト
 
-- [ ] `AppHeader` を描画すると、`banner` ロールの要素の中に、名前が「type-chat」で `href` が `/` のリンクがある
-- [ ] `AppHeader` を描画しても、`h1` がない
-- [ ] `EmptyState` を描画すると、`title` が `h2` として、`description` が文として表示される
-- [ ] `EmptyState` の `action` に渡したボタンが描画され、押すとそのボタンの `onClick` が呼ばれる
-- [ ] `ConfirmDialog` を `open: true` で描画すると、`alertdialog` ロールの要素に `title` と `description` が表示される
-- [ ] `ConfirmDialog` の確定ボタン（`confirmLabel` の文言）を押すと、`onConfirm` が1回呼ばれ、`onOpenChange(false)` は呼ばれない
-- [ ] `ConfirmDialog` の「キャンセル」を押すと、`onOpenChange(false)` が呼ばれ、`onConfirm` は呼ばれない
-- [ ] `ConfirmDialog` を `pending: true` で描画すると、確定ボタンが無効で、文言が `pendingLabel` になる
-- [ ] `ConfirmDialog` を `pending: true` で描画すると、「キャンセル」が無効になる
-- [ ] `ConfirmDialog` を `destructive: true` で描画すると、確定ボタンのクラスに `bg-destructive` が含まれる
-- [ ] `RootLayout` の描画結果に、共通ヘッダー（名前が「type-chat」で `href` が `/` のリンク）がある
-- [ ] `RootLayout` に渡した `children` が `main` 要素の中に描画され、`main` のクラスに `mx-auto`・`max-w-2xl`・`px-4` が含まれる
-- [ ] `RootLayout` の描画結果に、sonner のトーストの表示領域（`Toaster`）がある
-- [ ] 規約テストの検査関数が、生の色クラス（`bg-blue-500`・`text-white`・`hover:border-gray-200`）を含む内容に対して、それぞれを違反として返す
-- [ ] 規約テストの検査関数が、テーマトークンのクラス（`bg-primary`・`text-muted-foreground`・`text-destructive`・`border-border`）だけの内容に対して、違反を返さない
-- [ ] 規約テストの検査関数が、任意値（`p-[13px]`・`w-[320px]`・`bg-[#1e40af]`）を含む内容に対して、それぞれを違反として返す
-- [ ] 規約テストの検査関数が、`setInterval(` を含む内容に対して違反を返す
-- [ ] 規約テストの走査対象の一覧に、`src/components/ui/`・`src/app/api/` の下のファイルと `*.test.tsx` が含まれない
-- [ ] 規約テストの走査対象の実際のファイルに、違反が0件である
+- [x] `AppHeader` を描画すると、`banner` ロールの要素の中に、名前が「type-chat」で `href` が `/` のリンクがある
+- [x] `AppHeader` を描画しても、`h1` がない
+- [x] `EmptyState` を描画すると、`title` が `h2` として、`description` が文として表示される
+- [x] `EmptyState` の `action` に渡したボタンが描画され、押すとそのボタンの `onClick` が呼ばれる
+- [x] `ConfirmDialog` を `open: true` で描画すると、`alertdialog` ロールの要素に `title` と `description` が表示される
+- [x] `ConfirmDialog` の確定ボタン（`confirmLabel` の文言）を押すと、`onConfirm` が1回呼ばれ、`onOpenChange(false)` は呼ばれない
+- [x] `ConfirmDialog` の「キャンセル」を押すと、`onOpenChange(false)` が呼ばれ、`onConfirm` は呼ばれない
+- [x] `ConfirmDialog` を `pending: true` で描画すると、確定ボタンが無効で、文言が `pendingLabel` になる
+- [x] `ConfirmDialog` を `pending: true` で描画すると、「キャンセル」が無効になる
+- [x] `ConfirmDialog` を `destructive: true` で描画すると、確定ボタンのクラスに `bg-destructive` が含まれる
+- [x] `RootLayout` の描画結果に、共通ヘッダー（名前が「type-chat」で `href` が `/` のリンク）がある
+- [x] `RootLayout` に渡した `children` が `main` 要素の中に描画され、`main` のクラスに `mx-auto`・`max-w-2xl`・`px-4` が含まれる
+- [x] `RootLayout` の描画結果に、sonner のトーストの表示領域（`Toaster`）がある
+- [x] 規約テストの検査関数が、生の色クラス（`bg-blue-500`・`text-white`・`hover:border-gray-200`）を含む内容に対して、それぞれを違反として返す
+- [x] 規約テストの検査関数が、テーマトークンのクラス（`bg-primary`・`text-muted-foreground`・`text-destructive`・`border-border`）だけの内容に対して、違反を返さない
+- [x] 規約テストの検査関数が、任意値（`p-[13px]`・`w-[320px]`・`bg-[#1e40af]`）を含む内容に対して、それぞれを違反として返す
+- [x] 規約テストの検査関数が、`setInterval(` を含む内容に対して違反を返す
+- [x] 規約テストの走査対象の一覧に、`src/components/ui/`・`src/app/api/` の下のファイルと `*.test.tsx` が含まれない
+- [x] 規約テストの走査対象の実際のファイルに、違反が0件である
 
 ## 対象外
 
