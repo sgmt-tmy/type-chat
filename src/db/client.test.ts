@@ -49,9 +49,9 @@ describe("createDb", () => {
     expect(db.select().from(messages).all()).toEqual([]);
   });
 
-  it("DBファイルのパスは定数で、process.env を参照しない", () => {
+  it("DBファイルのパスは定数で、環境変数を参照しない", () => {
     const src = readFileSync("src/db/client.ts", "utf8");
     expect(src).toContain('DB_FILE_PATH = "data/type-chat.db"');
-    expect(src).not.toContain("process.env");
+    expect(src).not.toMatch(/processs*.s*env/);
   });
 });
