@@ -193,6 +193,9 @@ describe("各ルールの pattern / paths", () => {
 
     expect(isTarget("src/group.ts")).toBe(true);
     expect(isTarget("src/group.test.ts")).toBe(false);
+    expect(isTarget("src/foo.tsx")).toBe(true);
+    expect(isTarget("src/foo.test.tsx")).toBe(false);
+    expect(isTarget("src/a/b/foo.test.tsx")).toBe(false);
     expect(isTarget("scripts/check-specs.js")).toBe(false);
   });
 });
