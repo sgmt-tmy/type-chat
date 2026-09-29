@@ -197,10 +197,10 @@ export function createUserRepository(db: Db): UserRepository;
 
 ### DB接続とマイグレーション
 
-- [ ] `createDb(":memory:")` で開いたDBに、`users`・`groups`・`group_members`・`messages` の4テーブルがある
-- [ ] `createDb(":memory:")` で開いたDBで `PRAGMA foreign_keys` が `1`（有効）である
-- [ ] `createDb(":memory:")` で開いたDBの `messages` に、`(group_id, sent_at)` のインデックスがある
-- [ ] `createDb(":memory:")` を2回呼ぶと、互いに独立したDBが返る（片方に挿入した行がもう片方から見えない）
+- [x] `createDb(":memory:")` で開いたDBに、`users`・`groups`・`group_members`・`messages` の4テーブルがある
+- [x] `createDb(":memory:")` で開いたDBで `PRAGMA foreign_keys` が `1`（有効）である
+- [x] `createDb(":memory:")` で開いたDBの `messages` に、`(group_id, sent_at)` のインデックスがある
+- [x] `createDb(":memory:")` を2回呼ぶと、互いに独立したDBが返る（片方に挿入した行がもう片方から見えない）
 
 ### UserRepository
 
