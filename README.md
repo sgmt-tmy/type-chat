@@ -33,6 +33,14 @@ npm run dev
 npm run check
 ```
 
+## データベース
+チャットのデータは SQLite に保存する。DBファイルは `data/type-chat.db`（リポジトリ直下からの相対パス）で、初回のアクセス時に自動で作られ、マイグレーションが適用される。`data/` はコミットしない。
+
+スキーマ（`src/db/schema.ts`）を変えたら、マイグレーションを生成してコミットする。
+```bash
+npm run db:generate
+```
+
 ## ブランチ運用
 mainへ直接pushしない。ブランチを切ってPRを作り、Actionsが緑になってからマージする。
 
