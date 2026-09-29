@@ -1,5 +1,5 @@
 ---
-status: approved        # draft / approved / implemented / deprecated
+status: implemented       # draft / approved / implemented / deprecated
 updated: 2026-09-29
 ---
 
@@ -314,41 +314,41 @@ export function UserMenu(props: UserMenuProps): React.JSX.Element;
 
 APIクライアント（`src/lib/api-client.ts`）
 
-- [ ] 200 と JSON の本文を返す `fetch` のとき、`apiFetch` が `{ ok: true, data: <本文> }` を返す
-- [ ] 204 を返す `fetch` のとき、`apiFetch` が `{ ok: true, data: null }` を返す
-- [ ] `body` を渡すと、`fetch` に `JSON.stringify(body)` の本文と `Content-Type: application/json` のヘッダーが渡る
-- [ ] `method` を省略すると、`fetch` に `GET` が渡る
-- [ ] 409 と `{ error: { code: "conflict", message: "その名前はすでに使われています" } }` を返す `fetch` のとき、`apiFetch` が `{ ok: false, error: { code: "conflict", message: "その名前はすでに使われています" } }` を返す
-- [ ] 500 と JSON でない本文を返す `fetch` のとき、`apiFetch` が `{ ok: false, error: { code: "internal", message: "サーバーでエラーが発生しました" } }` を返す
-- [ ] `fetch` が例外を投げたとき、`apiFetch` が例外を投げずに `{ ok: false, error: { code: "network", message: "通信に失敗しました。接続を確認してもう一度お試しください" } }` を返す
+- [x] 200 と JSON の本文を返す `fetch` のとき、`apiFetch` が `{ ok: true, data: <本文> }` を返す
+- [x] 204 を返す `fetch` のとき、`apiFetch` が `{ ok: true, data: null }` を返す
+- [x] `body` を渡すと、`fetch` に `JSON.stringify(body)` の本文と `Content-Type: application/json` のヘッダーが渡る
+- [x] `method` を省略すると、`fetch` に `GET` が渡る
+- [x] 409 と `{ error: { code: "conflict", message: "その名前はすでに使われています" } }` を返す `fetch` のとき、`apiFetch` が `{ ok: false, error: { code: "conflict", message: "その名前はすでに使われています" } }` を返す
+- [x] 500 と JSON でない本文を返す `fetch` のとき、`apiFetch` が `{ ok: false, error: { code: "internal", message: "サーバーでエラーが発生しました" } }` を返す
+- [x] `fetch` が例外を投げたとき、`apiFetch` が例外を投げずに `{ ok: false, error: { code: "network", message: "通信に失敗しました。接続を確認してもう一度お試しください" } }` を返す
 
 利用開始の画面と開始フォーム
 
-- [ ] 利用者の Cookie がある状態で `/start` のページを描画すると、`redirect("/")` が呼ばれる
-- [ ] 利用者の Cookie がない状態で `/start` のページを描画すると、`h1`「type-chat をはじめる」が1つだけあり、開始フォームが描画される
-- [ ] `StartForm` の入力欄が空（空白だけを含む）の間、「はじめる」ボタンが無効である
-- [ ] `StartForm` で名前を入れて「はじめる」を押すと、`POST /api/users` に `{ name }` が送られる
-- [ ] `StartForm` の送信中は「はじめる」ボタンが無効で、文言が「開始中…」になる
-- [ ] `StartForm` の登録が成功すると、`toast.success("利用を開始しました")` が呼ばれ、`router.replace("/")` と `router.refresh()` が呼ばれる
-- [ ] `StartForm` に31文字の名前を入れて送信すると、APIを呼ばずに入力欄の直下に `ユーザー名は30文字以内で入力してください` が出て、入力欄が `aria-invalid="true"` になる
-- [ ] `StartForm` の登録が 409（`conflict`）で失敗すると、入力欄の直下に `その名前はすでに使われています` が出て、入力欄の `aria-describedby` がその文言の要素を指す
-- [ ] `StartForm` の登録が通信エラーで失敗すると、`toast.error` がその `message` で呼ばれ、入力欄の直下にはエラーが出ない
-- [ ] `StartForm` に利用者を2人渡すと、見出し「前に使った名前で入り直す」と、それぞれの名前のボタンが描画される
-- [ ] `StartForm` に空の `users` を渡すと、見出し「前に使った名前で入り直す」が描画されない
-- [ ] `StartForm` の既存の利用者のボタンを押すと、`PUT /api/session` に `{ userId: <その利用者の id> }` が送られる
-- [ ] `StartForm` の既存の利用者への切り替えが成功すると、`toast.success("利用を再開しました")` が呼ばれ、`router.replace("/")` と `router.refresh()` が呼ばれる
-- [ ] `StartForm` の既存の利用者への切り替えが 404 で失敗すると、`toast.error("利用者が見つかりません")` が呼ばれる
-- [ ] `StartForm` の既存の利用者のボタンのクラスに `bg-primary` が含まれない（主操作は「はじめる」だけ）
+- [x] 利用者の Cookie がある状態で `/start` のページを描画すると、`redirect("/")` が呼ばれる
+- [x] 利用者の Cookie がない状態で `/start` のページを描画すると、`h1`「type-chat をはじめる」が1つだけあり、開始フォームが描画される
+- [x] `StartForm` の入力欄が空（空白だけを含む）の間、「はじめる」ボタンが無効である
+- [x] `StartForm` で名前を入れて「はじめる」を押すと、`POST /api/users` に `{ name }` が送られる
+- [x] `StartForm` の送信中は「はじめる」ボタンが無効で、文言が「開始中…」になる
+- [x] `StartForm` の登録が成功すると、`toast.success("利用を開始しました")` が呼ばれ、`router.replace("/")` と `router.refresh()` が呼ばれる
+- [x] `StartForm` に31文字の名前を入れて送信すると、APIを呼ばずに入力欄の直下に `ユーザー名は30文字以内で入力してください` が出て、入力欄が `aria-invalid="true"` になる
+- [x] `StartForm` の登録が 409（`conflict`）で失敗すると、入力欄の直下に `その名前はすでに使われています` が出て、入力欄の `aria-describedby` がその文言の要素を指す
+- [x] `StartForm` の登録が通信エラーで失敗すると、`toast.error` がその `message` で呼ばれ、入力欄の直下にはエラーが出ない
+- [x] `StartForm` に利用者を2人渡すと、見出し「前に使った名前で入り直す」と、それぞれの名前のボタンが描画される
+- [x] `StartForm` に空の `users` を渡すと、見出し「前に使った名前で入り直す」が描画されない
+- [x] `StartForm` の既存の利用者のボタンを押すと、`PUT /api/session` に `{ userId: <その利用者の id> }` が送られる
+- [x] `StartForm` の既存の利用者への切り替えが成功すると、`toast.success("利用を再開しました")` が呼ばれ、`router.replace("/")` と `router.refresh()` が呼ばれる
+- [x] `StartForm` の既存の利用者への切り替えが 404 で失敗すると、`toast.error("利用者が見つかりません")` が呼ばれる
+- [x] `StartForm` の既存の利用者のボタンのクラスに `bg-primary` が含まれない（主操作は「はじめる」だけ）
 
 利用者メニューと共通ヘッダー
 
-- [ ] `UserMenu` を描画すると、利用者名を文言とするボタンがある
-- [ ] `UserMenu` のボタンを押してメニューを開くと、「利用者を切り替える」の項目がある
-- [ ] `UserMenu` で「利用者を切り替える」を選ぶと、`DELETE /api/session` が呼ばれ、成功したら `toast.success("利用を終了しました")` と `router.replace("/start")`・`router.refresh()` が呼ばれる
-- [ ] `UserMenu` で「利用者を切り替える」が失敗すると、`toast.error` がその `message` で呼ばれ、`router.replace` は呼ばれない
-- [ ] `AppHeader` に `userName: "たろう"` を渡すと、`banner` ロールの要素の中に「たろう」のボタン（利用者メニュー）がある
-- [ ] `AppHeader` に `userName` を渡さないと、利用者メニューのボタンがない
-- [ ] 利用者の Cookie がある状態で `RootLayout` を描画すると、共通ヘッダーに利用者名のボタンがある
+- [x] `UserMenu` を描画すると、利用者名を文言とするボタンがある
+- [x] `UserMenu` のボタンを押してメニューを開くと、「利用者を切り替える」の項目がある
+- [x] `UserMenu` で「利用者を切り替える」を選ぶと、`DELETE /api/session` が呼ばれ、成功したら `toast.success("利用を終了しました")` と `router.replace("/start")`・`router.refresh()` が呼ばれる
+- [x] `UserMenu` で「利用者を切り替える」が失敗すると、`toast.error` がその `message` で呼ばれ、`router.replace` は呼ばれない
+- [x] `AppHeader` に `userName: "たろう"` を渡すと、`banner` ロールの要素の中に「たろう」のボタン（利用者メニュー）がある
+- [x] `AppHeader` に `userName` を渡さないと、利用者メニューのボタンがない
+- [x] 利用者の Cookie がある状態で `RootLayout` を描画すると、共通ヘッダーに利用者名のボタンがある
 
 ## 対象外
 
