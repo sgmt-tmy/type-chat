@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit",
     "check:specs": "node scripts/check-specs.js",
     "check": "npm run lint && npm run typecheck && npm run check:specs && npm test",
-    "setup:hooks": "git config core.hooksPath .githooks"
+    "setup:hooks": "git config core.hooksPath .githooks",
+    "db:generate": "drizzle-kit generate"
   },
   "repository": {
     "type": "git",
@@ -32,10 +33,12 @@
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.7",
+    "@types/better-sqlite3": "^9.6.0",
     "@types/node": "^26.6.3",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
+    "drizzle-kit": "^0.31.11",
     "eslint": "^10.11.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.12.0",
@@ -46,8 +49,10 @@
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.3.3",
+    "better-sqlite3": "^13.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "drizzle-orm": "^0.45.3",
     "lucide-react": "^1.48.0",
     "next": "^16.3.7",
     "next-themes": "^0.4.6",

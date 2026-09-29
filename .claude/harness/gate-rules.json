@@ -125,7 +125,7 @@
           "summary": "src の変更に対応する承認済みの仕様書がない",
           "check": "spec_link",
           "paths": ["src/**"],
-          "exclude_paths": ["src/**/*.test.ts"],
+          "exclude_paths": ["src/**/*.test.ts", "src/**/*.test.tsx"],
           "spec_paths": ["docs/specs/*.md"],
           "allowed_statuses": ["approved", "implemented"],
           "rationale": "受け入れ条件を人が確定していない実装は、AIが仕様を推測して決めることになる（docs/README.md「仕様は実装の前に書く」）。status を比較元で見るのは、同じPRで draft を implemented に書き換えて通す抜け道を防ぐため。",

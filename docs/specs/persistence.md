@@ -1,5 +1,5 @@
 ---
-status: approved        # draft / approved / implemented / deprecated
+status: implemented       # draft / approved / implemented / deprecated
 updated: 2026-09-29
 ---
 
@@ -197,47 +197,47 @@ export function createUserRepository(db: Db): UserRepository;
 
 ### DB接続とマイグレーション
 
-- [ ] `createDb(":memory:")` で開いたDBに、`users`・`groups`・`group_members`・`messages` の4テーブルがある
-- [ ] `createDb(":memory:")` で開いたDBで `PRAGMA foreign_keys` が `1`（有効）である
-- [ ] `createDb(":memory:")` で開いたDBの `messages` に、`(group_id, sent_at)` のインデックスがある
-- [ ] `createDb(":memory:")` を2回呼ぶと、互いに独立したDBが返る（片方に挿入した行がもう片方から見えない）
+- [x] `createDb(":memory:")` で開いたDBに、`users`・`groups`・`group_members`・`messages` の4テーブルがある
+- [x] `createDb(":memory:")` で開いたDBで `PRAGMA foreign_keys` が `1`（有効）である
+- [x] `createDb(":memory:")` で開いたDBの `messages` に、`(group_id, sent_at)` のインデックスがある
+- [x] `createDb(":memory:")` を2回呼ぶと、互いに独立したDBが返る（片方に挿入した行がもう片方から見えない）
 
 ### UserRepository
 
-- [ ] `insert` した `User` を `findById` で取り出すと、`id`・`name` が同じ `User` が返る
-- [ ] 存在しない `id` で `findById` を呼ぶと `null` が返る
-- [ ] 同じ `name` の `User` を2人 `insert` しても例外にならず、`list` で2人とも返る
-- [ ] `list` が、`insert` した順に `User` を返す
-- [ ] 1人も `insert` していないとき、`list` が空配列を返す
+- [x] `insert` した `User` を `findById` で取り出すと、`id`・`name` が同じ `User` が返る
+- [x] 存在しない `id` で `findById` を呼ぶと `null` が返る
+- [x] 同じ `name` の `User` を2人 `insert` しても例外にならず、`list` で2人とも返る
+- [x] `list` が、`insert` した順に `User` を返す
+- [x] 1人も `insert` していないとき、`list` が空配列を返す
 
 ### GroupRepository
 
-- [ ] `createGroup` で作った `Group` を `insert` し `findById` で取り出すと、`id`・`name`・`ownerId`・`members` が同じ `Group` が返る
-- [ ] `addMember` を2回適用した `Group` を `insert` し `findById` で取り出すと、`members` が元の配列と同じ順序で返る
-- [ ] 存在しない `id` で `findById` を呼ぶと `null` が返る
-- [ ] `listByMember` が、その利用者がメンバーに含まれるグループだけを返す
-- [ ] `listByMember` が、グループを `insert` した順に返す
-- [ ] どのグループのメンバーでもない利用者で `listByMember` を呼ぶと、空配列が返る
-- [ ] `renameGroup` を適用した `Group` を `save` すると、`findById` で新しい `name` が返る
-- [ ] `transferOwner` を適用した `Group` を `save` すると、`findById` で新しい `ownerId` が返る
-- [ ] `addMember` を適用した `Group` を `save` すると、`findById` の `members` の末尾に追加したメンバーが含まれる
-- [ ] `removeMember` を適用した `Group` を `save` すると、`findById` の `members` から外したメンバーが消える
-- [ ] 存在しない `id` の `Group` を `save` すると、`code` が `"not_found"`、文言が `グループが見つかりません` の `DomainError` が投げられる
-- [ ] `delete` で存在するグループを削除すると `true` が返り、その後の `findById` が `null` を返す
-- [ ] 存在しない `id` で `delete` を呼ぶと、例外にならず `false` が返る
-- [ ] グループを `delete` すると、そのグループの `group_members` の行が消える（ON DELETE CASCADE）
-- [ ] グループを `delete` すると、そのグループのメッセージが `listByGroup` で返らなくなる（ON DELETE CASCADE）
+- [x] `createGroup` で作った `Group` を `insert` し `findById` で取り出すと、`id`・`name`・`ownerId`・`members` が同じ `Group` が返る
+- [x] `addMember` を2回適用した `Group` を `insert` し `findById` で取り出すと、`members` が元の配列と同じ順序で返る
+- [x] 存在しない `id` で `findById` を呼ぶと `null` が返る
+- [x] `listByMember` が、その利用者がメンバーに含まれるグループだけを返す
+- [x] `listByMember` が、グループを `insert` した順に返す
+- [x] どのグループのメンバーでもない利用者で `listByMember` を呼ぶと、空配列が返る
+- [x] `renameGroup` を適用した `Group` を `save` すると、`findById` で新しい `name` が返る
+- [x] `transferOwner` を適用した `Group` を `save` すると、`findById` で新しい `ownerId` が返る
+- [x] `addMember` を適用した `Group` を `save` すると、`findById` の `members` の末尾に追加したメンバーが含まれる
+- [x] `removeMember` を適用した `Group` を `save` すると、`findById` の `members` から外したメンバーが消える
+- [x] 存在しない `id` の `Group` を `save` すると、`code` が `"not_found"`、文言が `グループが見つかりません` の `DomainError` が投げられる
+- [x] `delete` で存在するグループを削除すると `true` が返り、その後の `findById` が `null` を返す
+- [x] 存在しない `id` で `delete` を呼ぶと、例外にならず `false` が返る
+- [x] グループを `delete` すると、そのグループの `group_members` の行が消える（ON DELETE CASCADE）
+- [x] グループを `delete` すると、そのグループのメッセージが `listByGroup` で返らなくなる（ON DELETE CASCADE）
 
 ### MessageRepository
 
-- [ ] `insert` した `Message` を `findById` で取り出すと、`id`・`groupId`・`senderId`・`text`・`sentAt`（ミリ秒まで）が同じ `Message` が返る
-- [ ] 存在しない `id` で `findById` を呼ぶと `null` が返る
-- [ ] `sentAt` の順と異なる順に `insert` した3件を、`listByGroup` が `sentAt` の昇順で返す
-- [ ] `listByGroup` が、指定したグループのメッセージだけを返す（別のグループのメッセージを含まない）
-- [ ] メッセージのないグループで `listByGroup` を呼ぶと、空配列が返る
-- [ ] 存在しない `groupId` の `Message` を `insert` すると例外が投げられる（外部キー違反）
-- [ ] `delete` で存在するメッセージを削除すると `true` が返り、その後の `findById` が `null` を返す
-- [ ] 存在しない `id` で `delete` を呼ぶと、例外にならず `false` が返る
+- [x] `insert` した `Message` を `findById` で取り出すと、`id`・`groupId`・`senderId`・`text`・`sentAt`（ミリ秒まで）が同じ `Message` が返る
+- [x] 存在しない `id` で `findById` を呼ぶと `null` が返る
+- [x] `sentAt` の順と異なる順に `insert` した3件を、`listByGroup` が `sentAt` の昇順で返す
+- [x] `listByGroup` が、指定したグループのメッセージだけを返す（別のグループのメッセージを含まない）
+- [x] メッセージのないグループで `listByGroup` を呼ぶと、空配列が返る
+- [x] 存在しない `groupId` の `Message` を `insert` すると例外が投げられる（外部キー違反）
+- [x] `delete` で存在するメッセージを削除すると `true` が返り、その後の `findById` が `null` を返す
+- [x] 存在しない `id` で `delete` を呼ぶと、例外にならず `false` が返る
 
 ## 対象外
 
