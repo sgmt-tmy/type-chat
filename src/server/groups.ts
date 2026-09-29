@@ -1,7 +1,7 @@
 import type { GroupRepository } from "../db/group-repository";
 import type { UserRepository } from "../db/user-repository";
 import { DomainError } from "../errors";
-import { createGroup, renameGroup, type Group } from "../group";
+import { createGroup, renameGroup, transferOwner, type Group } from "../group";
 import { publish } from "./events";
 
 /** 一覧の1行分 */
@@ -86,6 +86,22 @@ export async function renameGroupByUser(
 ): Promise<GroupDetail> {
   const before = await findGroupAsMember(groups, groupId, userId);
   const after = renameGroup(before, userId, name);
+  await groups.save(after);
+  publish({ type: "group.updated", data: { group: after } }, [
+    ...new Set([...before.members, ...after.members]),
+  ]);
+  return toGroupDetail(users, after);
+}
+
+export async function transferOwnerByUser(
+  groups: GroupRepository,
+  users: UserRepository,
+  groupId: string,
+  userId: string,
+  newOwnerId: string,
+): Promise<GroupDetail> {
+  const before = await findGroupAsMember(groups, groupId, userId);
+  const after = transferOwner(before, userId, newOwnerId);
   await groups.save(after);
   publish({ type: "group.updated", data: { group: after } }, [
     ...new Set([...before.members, ...after.members]),

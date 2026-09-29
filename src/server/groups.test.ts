@@ -11,6 +11,7 @@ import {
   getGroupDetail,
   listGroupsOfUser,
   renameGroupByUser,
+  transferOwnerByUser,
   UNKNOWN_MEMBER_NAME,
 } from "./groups";
 
@@ -190,6 +191,62 @@ describe("renameGroupByUser", () => {
     expect(err).toBeInstanceOf(DomainError);
     expect(err).toMatchObject({ code, message });
     expect((await groups.findById(g.id))?.name).toBe("雑談");
+    expect(count).toBe(0);
+  });
+});
+
+describe("transferOwnerByUser", () => {
+  async function prepare() {
+    const { groups, users } = setup();
+    await addUser(users, "u1", "たろう");
+    await addUser(users, "u2", "はなこ");
+    await addUser(users, "u3", "じろう");
+    const base = createGroup("雑談", "u1");
+    await groups.insert(base);
+    const g = addMember(base, "u2");
+    await groups.save(g);
+    return { groups, users, g };
+  }
+
+  it("委譲して保存し、旧オーナーはメンバーに残る", async () => {
+    const { groups, users, g } = await prepare();
+    const detail = await transferOwnerByUser(groups, users, g.id, "u1", "u2");
+    expect(detail.ownerId).toBe("u2");
+    const saved = await groups.findById(g.id);
+    expect(saved?.ownerId).toBe("u2");
+    expect(saved?.members).toContain("u1");
+  });
+
+  it("メンバー全員に group.updated を1回ずつ発行する", async () => {
+    const { groups, users, g } = await prepare();
+    const got: Record<string, LiveEvent[]> = { u1: [], u2: [], u3: [] };
+    const offs = Object.keys(got).map((id) => subscribe(id, (e) => got[id]?.push(e)));
+    await transferOwnerByUser(groups, users, g.id, "u1", "u2");
+    offs.forEach((off) => off());
+    for (const id of ["u1", "u2"]) {
+      expect(got[id]).toHaveLength(1);
+      expect(got[id]?.[0]).toMatchObject({
+        type: "group.updated",
+        data: { group: { ownerId: "u2" } },
+      });
+    }
+    expect(got.u3).toHaveLength(0);
+  });
+
+  it.each([
+    ["u2", "u2", "forbidden", "オーナー権限の委譲はオーナーのみ可能です"],
+    ["u3", "u2", "not_found", "グループが見つかりません"],
+    ["u1", "u1", "validation", "委譲先が現在のオーナーと同じです"],
+    ["u1", "u3", "validation", "委譲先はグループのメンバーである必要があります"],
+  ])("失敗（%#）では保存も発行もしない", async (uid, target, code, message) => {
+    const { groups, users, g } = await prepare();
+    let count = 0;
+    const off = subscribe("u1", () => count++);
+    const err = await transferOwnerByUser(groups, users, g.id, uid, target).catch((e) => e);
+    off();
+    expect(err).toBeInstanceOf(DomainError);
+    expect(err).toMatchObject({ code, message });
+    expect((await groups.findById(g.id))?.ownerId).toBe("u1");
     expect(count).toBe(0);
   });
 });
