@@ -52,6 +52,6 @@ describe("createDb", () => {
   it("DBファイルのパスは定数で、環境変数を参照しない", () => {
     const src = readFileSync("src/db/client.ts", "utf8");
     expect(src).toContain('DB_FILE_PATH = "data/type-chat.db"');
-    expect(src).not.toMatch(/processs*.s*env/);
+    expect(src).not.toMatch(/process\s*\.\s*env/);
   });
 });
