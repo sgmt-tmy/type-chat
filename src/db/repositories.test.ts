@@ -48,7 +48,7 @@ describe("UserRepository", () => {
 describe("GroupRepository", () => {
   it("insert した Group を findById で同じ内容で読める", async () => {
     const { groups } = setup();
-    const g = addMember(addMember(createGroup("g", "o"), "b"), "c");
+    const g = addMember(addMember(createGroup("g", "o"), "o", "b"), "o", "c");
     await groups.insert(g);
     expect(await groups.findById(g.id)).toEqual(g);
   });
@@ -60,9 +60,9 @@ describe("GroupRepository", () => {
 
   it("listByMember は自分のグループだけを insert 順に返す", async () => {
     const { groups } = setup();
-    const g1 = addMember(createGroup("g1", "o"), "me");
+    const g1 = addMember(createGroup("g1", "o"), "o", "me");
     const g2 = createGroup("g2", "other");
-    const g3 = addMember(createGroup("g3", "o"), "me");
+    const g3 = addMember(createGroup("g3", "o"), "o", "me");
     await groups.insert(g1);
     await groups.insert(g2);
     await groups.insert(g3);
@@ -72,7 +72,7 @@ describe("GroupRepository", () => {
 
   it("save で名前・オーナー・メンバーの変更が反映される", async () => {
     const { groups } = setup();
-    const g = addMember(addMember(createGroup("g", "o"), "b"), "c");
+    const g = addMember(addMember(createGroup("g", "o"), "o", "b"), "o", "c");
     await groups.insert(g);
 
     const renamed = renameGroup(g, "o", "new");
@@ -83,7 +83,7 @@ describe("GroupRepository", () => {
     await groups.save(transferred);
     expect((await groups.findById(g.id))?.ownerId).toBe("b");
 
-    const added = addMember(transferred, "d");
+    const added = addMember(transferred, "b", "d");
     await groups.save(added);
     expect((await groups.findById(g.id))?.members).toEqual(["o", "b", "c", "d"]);
 
@@ -102,7 +102,7 @@ describe("GroupRepository", () => {
 
   it("delete は true/false を返し、メンバーとメッセージも消える", async () => {
     const { groups, messages } = setup();
-    const g = addMember(createGroup("g", "o"), "b");
+    const g = addMember(createGroup("g", "o"), "o", "b");
     await groups.insert(g);
     const m = createMessage(g.id, "o", "hi");
     await messages.insert(m);

@@ -261,66 +261,66 @@ Client Component。オーナーでない利用者にだけ描画する（`GroupS
 
 ドメイン（`src/group.ts` の `addMember`）
 
-- [ ] オーナーが `addMember(group, <オーナーのid>, "u2")` を呼ぶと、`members` の末尾に `u2` を足した新しい `Group` が返り、元の `group` の `members` は変わらない
-- [ ] `addMember` が返す `Group` の `id`・`name`・`ownerId` が元の `group` と同じである
-- [ ] メンバーであってオーナーでない利用者が `addMember` を呼ぶと、`code` が `"forbidden"`、文言が `メンバーの追加はオーナーのみ可能です` の `DomainError` が投げられる
-- [ ] メンバーでない利用者が `addMember` を呼ぶと、`code` が `"forbidden"` の `DomainError` が投げられる
-- [ ] オーナーがすでにメンバーの利用者を `addMember` で追加すると、元の `group` と同じオブジェクトが返る
-- [ ] オーナーでない利用者がすでにメンバーの利用者を `addMember` で追加すると、`code` が `"forbidden"` の `DomainError` が投げられる
+- [x] オーナーが `addMember(group, <オーナーのid>, "u2")` を呼ぶと、`members` の末尾に `u2` を足した新しい `Group` が返り、元の `group` の `members` は変わらない
+- [x] `addMember` が返す `Group` の `id`・`name`・`ownerId` が元の `group` と同じである
+- [x] メンバーであってオーナーでない利用者が `addMember` を呼ぶと、`code` が `"forbidden"`、文言が `メンバーの追加はオーナーのみ可能です` の `DomainError` が投げられる
+- [x] メンバーでない利用者が `addMember` を呼ぶと、`code` が `"forbidden"` の `DomainError` が投げられる
+- [x] オーナーがすでにメンバーの利用者を `addMember` で追加すると、元の `group` と同じオブジェクトが返る
+- [x] オーナーでない利用者がすでにメンバーの利用者を `addMember` で追加すると、`code` が `"forbidden"` の `DomainError` が投げられる
 
 ユースケース（`src/server/groups.ts` の `addMemberByUser`）
 
-- [ ] オーナーが `addMemberByUser(…, groupId, <オーナーのid>, <利用者のid>)` を呼ぶと、`members` の末尾にその利用者の `{ id, name }` がある `GroupDetail` が返る
-- [ ] `addMemberByUser` の後、`findById` で取り出したグループの `members` の末尾に追加した利用者がいる
-- [ ] `addMemberByUser` で追加すると、`subscribe` した変更後のメンバー全員（操作したオーナーと追加された利用者を含む）のリスナーが、`type` が `group.updated`、`data.group.members` に追加した利用者を含むイベントで1回ずつ呼ばれる
-- [ ] `addMemberByUser` で追加しても、`subscribe` したメンバーでない（追加もされていない）利用者のリスナーは呼ばれない
-- [ ] メンバーであってオーナーでない利用者が `addMemberByUser` を呼ぶと、`code` が `"forbidden"`、文言が `メンバーの追加はオーナーのみ可能です` の `DomainError` が投げられ、`members` が変わらず、イベントが発行されない
-- [ ] メンバーでない利用者が `addMemberByUser` を呼ぶと、`code` が `"not_found"`、文言が `グループが見つかりません` の `DomainError` が投げられ、イベントが発行されない
-- [ ] `addMemberByUser` に存在しない利用者のIDを渡すと、`code` が `"not_found"`、文言が `利用者が見つかりません` の `DomainError` が投げられ、`members` が変わらず、イベントが発行されない
-- [ ] `addMemberByUser` ですでにメンバーの利用者を追加すると、例外にならずに現在の `GroupDetail` が返り、`members` の数が変わらず、イベントが発行されない
+- [x] オーナーが `addMemberByUser(…, groupId, <オーナーのid>, <利用者のid>)` を呼ぶと、`members` の末尾にその利用者の `{ id, name }` がある `GroupDetail` が返る
+- [x] `addMemberByUser` の後、`findById` で取り出したグループの `members` の末尾に追加した利用者がいる
+- [x] `addMemberByUser` で追加すると、`subscribe` した変更後のメンバー全員（操作したオーナーと追加された利用者を含む）のリスナーが、`type` が `group.updated`、`data.group.members` に追加した利用者を含むイベントで1回ずつ呼ばれる
+- [x] `addMemberByUser` で追加しても、`subscribe` したメンバーでない（追加もされていない）利用者のリスナーは呼ばれない
+- [x] メンバーであってオーナーでない利用者が `addMemberByUser` を呼ぶと、`code` が `"forbidden"`、文言が `メンバーの追加はオーナーのみ可能です` の `DomainError` が投げられ、`members` が変わらず、イベントが発行されない
+- [x] メンバーでない利用者が `addMemberByUser` を呼ぶと、`code` が `"not_found"`、文言が `グループが見つかりません` の `DomainError` が投げられ、イベントが発行されない
+- [x] `addMemberByUser` に存在しない利用者のIDを渡すと、`code` が `"not_found"`、文言が `利用者が見つかりません` の `DomainError` が投げられ、`members` が変わらず、イベントが発行されない
+- [x] `addMemberByUser` ですでにメンバーの利用者を追加すると、例外にならずに現在の `GroupDetail` が返り、`members` の数が変わらず、イベントが発行されない
 
 `POST /api/groups/[groupId]/members`
 
-- [ ] オーナーで `POST /api/groups/[groupId]/members` に `{ userId: <利用者のid> }` を送ると、200 と `{ group: { id, name, ownerId, members: [{ id, name }] } }` が返り、`members` の末尾にその利用者がいる
-- [ ] `POST` で追加した後、追加された利用者の Cookie で `GET /api/groups` を呼ぶと、そのグループが含まれる
-- [ ] `POST` に成功すると、`subscribe` した追加された利用者のリスナーが、`data.group.id` がそのグループの `id` の `group.updated` のイベントで呼ばれる
-- [ ] メンバーであってオーナーでない利用者で `POST` を呼ぶと、403（`code: "forbidden"`、`message: "メンバーの追加はオーナーのみ可能です"`）が返り、`members` が変わらない
-- [ ] メンバーでない利用者で `POST` を呼ぶと、404（`code: "not_found"`、`message: "グループが見つかりません"`）が返る
-- [ ] 存在しないID（UUID の形）で `POST` を呼ぶと、メンバーでない利用者への応答と同じステータスと本文の 404 が返る
-- [ ] `POST` の `userId` に存在しない利用者のID（UUID の形）を送ると、404（`code: "not_found"`、`message: "利用者が見つかりません"`）が返り、`members` が変わらない
-- [ ] `POST` の `userId` にすでにメンバーの利用者を送ると、200 と現在のグループが返り、`members` の数が変わらない
-- [ ] `POST` に `userId` のない本文を送ると、400（`code: "validation"`、`message: "リクエストの形式が正しくありません"`）が返り、イベントが発行されない
-- [ ] Cookie のない `Request` で `POST` を呼ぶと、401（`code: "unauthenticated"`）が返る
+- [x] オーナーで `POST /api/groups/[groupId]/members` に `{ userId: <利用者のid> }` を送ると、200 と `{ group: { id, name, ownerId, members: [{ id, name }] } }` が返り、`members` の末尾にその利用者がいる
+- [x] `POST` で追加した後、追加された利用者の Cookie で `GET /api/groups` を呼ぶと、そのグループが含まれる
+- [x] `POST` に成功すると、`subscribe` した追加された利用者のリスナーが、`data.group.id` がそのグループの `id` の `group.updated` のイベントで呼ばれる
+- [x] メンバーであってオーナーでない利用者で `POST` を呼ぶと、403（`code: "forbidden"`、`message: "メンバーの追加はオーナーのみ可能です"`）が返り、`members` が変わらない
+- [x] メンバーでない利用者で `POST` を呼ぶと、404（`code: "not_found"`、`message: "グループが見つかりません"`）が返る
+- [x] 存在しないID（UUID の形）で `POST` を呼ぶと、メンバーでない利用者への応答と同じステータスと本文の 404 が返る
+- [x] `POST` の `userId` に存在しない利用者のID（UUID の形）を送ると、404（`code: "not_found"`、`message: "利用者が見つかりません"`）が返り、`members` が変わらない
+- [x] `POST` の `userId` にすでにメンバーの利用者を送ると、200 と現在のグループが返り、`members` の数が変わらない
+- [x] `POST` に `userId` のない本文を送ると、400（`code: "validation"`、`message: "リクエストの形式が正しくありません"`）が返り、イベントが発行されない
+- [x] Cookie のない `Request` で `POST` を呼ぶと、401（`code: "unauthenticated"`）が返る
 
 グループ設定画面（`src/app/groups/[groupId]/settings/page.tsx`）
 
-- [ ] オーナーで設定画面を描画して「追加する利用者」の Select を開くと、グループにいない登録済みの利用者の名前が選択肢にあり、メンバーの名前は選択肢にない
+- [x] オーナーで設定画面を描画して「追加する利用者」の Select を開くと、グループにいない登録済みの利用者の名前が選択肢にあり、メンバーの名前は選択肢にない
 
 メンバーの追加フォーム（`src/components/add-member-form.tsx`）
 
-- [ ] `AddMemberForm` に `h3`「メンバーを追加」がある
-- [ ] `AddMemberForm` に候補を2人渡すと、ラベル「追加する利用者」の Select（`id` が `ADD_MEMBER_SELECT_ID`）があり、開くと候補の名前が渡した順に選択肢として出る
-- [ ] 利用者を選んでいない間、「追加」ボタンが無効である
-- [ ] 利用者を選ぶと、「追加」ボタンが有効になる
-- [ ] 「追加」ボタンのクラスに `bg-primary` が含まれない
-- [ ] `AddMemberForm` に空の `candidates` を渡すと、`追加できる利用者がいません` が出て、Select と「追加」ボタンがない
-- [ ] 利用者を選んで「追加」を押すと、`POST /api/groups/<groupId>/members` に `{ userId: <選んだ利用者のid> }` が送られ、確認ダイアログ（`alertdialog`）が出ない
-- [ ] 送信中は「追加」ボタンが無効で、文言が「追加中…」になる
-- [ ] 追加に成功すると、`toast.success("<名前>さんを追加しました")` が呼ばれ、`onAdded` が応答の `group` で1回呼ばれ、選択が未選択（`利用者を選択`）に戻る
-- [ ] 追加が失敗すると、`toast.error` がその `message` で呼ばれ、`onAdded` が呼ばれず、「追加」の文言が戻り、選択が残る
-- [ ] 選択中の利用者を含まない `candidates` で再描画すると、選択が未選択に戻り、「追加」ボタンが無効になる
+- [x] `AddMemberForm` に `h3`「メンバーを追加」がある
+- [x] `AddMemberForm` に候補を2人渡すと、ラベル「追加する利用者」の Select（`id` が `ADD_MEMBER_SELECT_ID`）があり、開くと候補の名前が渡した順に選択肢として出る
+- [x] 利用者を選んでいない間、「追加」ボタンが無効である
+- [x] 利用者を選ぶと、「追加」ボタンが有効になる
+- [x] 「追加」ボタンのクラスに `bg-primary` が含まれない
+- [x] `AddMemberForm` に空の `candidates` を渡すと、`追加できる利用者がいません` が出て、Select と「追加」ボタンがない
+- [x] 利用者を選んで「追加」を押すと、`POST /api/groups/<groupId>/members` に `{ userId: <選んだ利用者のid> }` が送られ、確認ダイアログ（`alertdialog`）が出ない
+- [x] 送信中は「追加」ボタンが無効で、文言が「追加中…」になる
+- [x] 追加に成功すると、`toast.success("<名前>さんを追加しました")` が呼ばれ、`onAdded` が応答の `group` で1回呼ばれ、選択が未選択（`利用者を選択`）に戻る
+- [x] 追加が失敗すると、`toast.error` がその `message` で呼ばれ、`onAdded` が呼ばれず、「追加」の文言が戻り、選択が残る
+- [x] 選択中の利用者を含まない `candidates` で再描画すると、選択が未選択に戻り、「追加」ボタンが無効になる
 
 設定画面への組み込み（`src/components/group-settings-view.tsx`）
 
-- [ ] オーナーで `GroupSettingsView` を描画すると、セクション「メンバー」に `h3`「メンバーを追加」があり、選択肢が `users` のうちメンバーでない利用者だけ（登録順）である
-- [ ] オーナーでない利用者で `GroupSettingsView` を描画すると、`h3`「メンバーを追加」とラベル「追加する利用者」の Select がない
-- [ ] `users` の全員がメンバーのとき、オーナーで描画した `GroupSettingsView` に `追加できる利用者がいません` が出る
-- [ ] オーナーで描画した `GroupSettingsView` で追加に成功すると、メンバー一覧の末尾に追加した利用者の行が出て、その利用者が選択肢から消える
-- [ ] オーナーで描画した `GroupSettingsView` のボタンのうち、クラスに `bg-primary` を含むもの（主操作）が「保存」だけである（`AddMemberForm` を描画した状態で確かめる）
-- [ ] オーナーで描画した `GroupSettingsView` で委譲に成功すると、`h3`「メンバーを追加」がなくなる
-- [ ] オーナーでない利用者で描画した `GroupSettingsView` で、自分への委譲の `group.updated` を受け取って取り直すと、`h3`「メンバーを追加」が出る
-- [ ] この画面の `groupId` で、`currentUserId` を `members` に含む `group.updated` のハンドラを呼ぶと、`GET /api/groups/<groupId>` が呼ばれ、応答で加わったメンバーの行が出る
-- [ ] `src/components/add-member-form.tsx` の内容に、`setInterval` と `setTimeout` が含まれない（ファイルを読んで検査する）
+- [x] オーナーで `GroupSettingsView` を描画すると、セクション「メンバー」に `h3`「メンバーを追加」があり、選択肢が `users` のうちメンバーでない利用者だけ（登録順）である
+- [x] オーナーでない利用者で `GroupSettingsView` を描画すると、`h3`「メンバーを追加」とラベル「追加する利用者」の Select がない
+- [x] `users` の全員がメンバーのとき、オーナーで描画した `GroupSettingsView` に `追加できる利用者がいません` が出る
+- [x] オーナーで描画した `GroupSettingsView` で追加に成功すると、メンバー一覧の末尾に追加した利用者の行が出て、その利用者が選択肢から消える
+- [x] オーナーで描画した `GroupSettingsView` のボタンのうち、クラスに `bg-primary` を含むもの（主操作）が「保存」だけである（`AddMemberForm` を描画した状態で確かめる）
+- [x] オーナーで描画した `GroupSettingsView` で委譲に成功すると、`h3`「メンバーを追加」がなくなる
+- [x] オーナーでない利用者で描画した `GroupSettingsView` で、自分への委譲の `group.updated` を受け取って取り直すと、`h3`「メンバーを追加」が出る
+- [x] この画面の `groupId` で、`currentUserId` を `members` に含む `group.updated` のハンドラを呼ぶと、`GET /api/groups/<groupId>` が呼ばれ、応答で加わったメンバーの行が出る
+- [x] `src/components/add-member-form.tsx` の内容に、`setInterval` と `setTimeout` が含まれない（ファイルを読んで検査する）
 
 ### 自己脱退
 

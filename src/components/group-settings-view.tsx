@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { apiFetch } from "@/lib/api-client";
 import type { GroupDetail } from "../server/groups";
+import { AddMemberForm } from "./add-member-form";
 import { MemberList } from "./member-list";
 import { RenameGroupForm } from "./rename-group-form";
 import { useLiveEvents } from "./use-live-events";
@@ -15,16 +16,19 @@ export type GroupSettingsViewProps = {
   groupId: string;
   currentUserId: string;
   initialGroup: GroupDetail;
+  users: Array<{ id: string; name: string }>;
 };
 
 export function GroupSettingsView({
   groupId,
   currentUserId,
   initialGroup,
+  users,
 }: GroupSettingsViewProps): React.JSX.Element {
   const [group, setGroup] = useState(initialGroup);
   const latestRequest = useRef(0);
   const isOwner = group.ownerId === currentUserId;
+  const candidates = users.filter((u) => !group.members.some((m) => m.id === u.id));
 
   const refetch = useCallback((): void => {
     const requestId = ++latestRequest.current;
@@ -83,6 +87,11 @@ export function GroupSettingsView({
             currentUserId={currentUserId}
             onOwnerTransferred={setGroup}
           />
+          {isOwner ? (
+            <div className="mt-4 border-t border-border pt-4">
+              <AddMemberForm groupId={groupId} candidates={candidates} onAdded={setGroup} />
+            </div>
+          ) : null}
         </CardContent>
       </Card>
     </div>

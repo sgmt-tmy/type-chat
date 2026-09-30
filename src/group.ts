@@ -23,7 +23,10 @@ export function createGroup(name: string, ownerId: string): Group {
   return { id: crypto.randomUUID(), name: trimmed, ownerId, members: [ownerId] };
 }
 
-export function addMember(group: Group, userId: string): Group {
+export function addMember(group: Group, requesterId: string, userId: string): Group {
+  if (requesterId !== group.ownerId) {
+    throw new DomainError("forbidden", "メンバーの追加はオーナーのみ可能です");
+  }
   if (group.members.includes(userId)) {
     return group;
   }

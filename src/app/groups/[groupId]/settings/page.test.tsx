@@ -28,7 +28,16 @@ vi.mock("next/navigation", () => ({
   },
 }));
 vi.mock("@/components/group-settings-view", () => ({
-  GroupSettingsView: () => <h1>グループ設定</h1>,
+  GroupSettingsView: (props: { users: { id: string; name: string }[] }) => (
+    <div>
+      <h1>グループ設定</h1>
+      <ul aria-label="users">
+        {props.users.map((u) => (
+          <li key={u.id}>{u.name}</li>
+        ))}
+      </ul>
+    </div>
+  ),
 }));
 
 const { default: GroupSettingsPage } = await import("./page");
@@ -65,6 +74,18 @@ describe("GroupSettingsPage", () => {
     const headings = screen.getAllByRole("heading", { level: 1 });
     expect(headings).toHaveLength(1);
     expect(headings[0]?.textContent).toBe("グループ設定");
+  });
+
+  it("登録済みの利用者を登録順に users として渡す", async () => {
+    const user = await newUser("たろう");
+    await newUser("はなこ");
+    await newUser("じろう");
+    const group = createGroup("雑談", user.id);
+    await createGroupRepository(db).insert(group);
+    requireCurrentUserInPage.mockResolvedValue(user);
+    render(await GroupSettingsPage({ params: Promise.resolve({ groupId: group.id }) }));
+    const items = screen.getAllByRole("listitem").map((li) => li.textContent);
+    expect(items).toEqual(["たろう", "はなこ", "じろう"]);
   });
 
   it("メンバーでない利用者には notFound を呼ぶ", async () => {

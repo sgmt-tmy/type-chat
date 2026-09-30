@@ -33,9 +33,21 @@ const group = {
   ],
 };
 
-function renderView(currentUserId = "me") {
+const users = [
+  { id: "me", name: "わたし" },
+  { id: "u2", name: "はなこ" },
+  { id: "u3", name: "じろう" },
+  { id: "u4", name: "さぶろう" },
+];
+
+function renderView(currentUserId = "me", list = users) {
   return render(
-    <GroupSettingsView groupId="g1" currentUserId={currentUserId} initialGroup={group} />,
+    <GroupSettingsView
+      groupId="g1"
+      currentUserId={currentUserId}
+      initialGroup={group}
+      users={list}
+    />,
   );
 }
 
@@ -181,5 +193,89 @@ describe("GroupSettingsView", () => {
       expect(source).not.toContain("setInterval");
       expect(source).not.toContain("setTimeout");
     }
+  });
+
+  describe("メンバーの追加", () => {
+    beforeEach(() => {
+      Element.prototype.hasPointerCapture = () => false;
+      Element.prototype.scrollIntoView = () => {};
+      Element.prototype.releasePointerCapture = () => {};
+    });
+
+    it("オーナーには追加フォームが出て、選択肢はメンバーでない利用者だけ（登録順）", async () => {
+      renderView();
+      expect(screen.getByRole("heading", { level: 3, name: "メンバーを追加" })).toBeTruthy();
+      await userEvent.click(screen.getByLabelText("追加する利用者"));
+      const options = await screen.findAllByRole("option");
+      expect(options.map((o) => o.textContent)).toEqual(["じろう", "さぶろう"]);
+    });
+
+    it("オーナー以外には追加フォームが出ない", () => {
+      renderView("u2");
+      expect(screen.queryByRole("heading", { level: 3, name: "メンバーを追加" })).toBeNull();
+      expect(screen.queryByLabelText("追加する利用者")).toBeNull();
+    });
+
+    it("全員がメンバーなら案内が出る", () => {
+      renderView("me", users.slice(0, 2));
+      expect(screen.getByText("追加できる利用者がいません")).toBeTruthy();
+    });
+
+    it("追加に成功すると一覧の末尾に行が出て、選択肢から消える", async () => {
+      apiFetch.mockResolvedValue({
+        ok: true,
+        data: {
+          group: { ...group, members: [...group.members, { id: "u3", name: "じろう" }] },
+        },
+      });
+      renderView();
+      await userEvent.click(screen.getByLabelText("追加する利用者"));
+      await userEvent.click(await screen.findByRole("option", { name: "じろう" }));
+      await userEvent.click(screen.getByRole("button", { name: "追加" }));
+      await waitFor(() => expect(toast.success).toHaveBeenCalledWith("じろうさんを追加しました"));
+      const rows = screen.getAllByRole("listitem").map((li) => li.textContent);
+      expect(rows[rows.length - 1]).toContain("じろう");
+      await userEvent.click(screen.getByLabelText("追加する利用者"));
+      const options = await screen.findAllByRole("option");
+      expect(options.map((o) => o.textContent)).toEqual(["さぶろう"]);
+    });
+
+    it("主操作（bg-primary）は追加フォームがあっても保存だけ", () => {
+      renderView();
+      const primary = screen
+        .getAllByRole("button")
+        .filter((b) => b.className.includes("bg-primary"));
+      expect(primary.map((b) => b.textContent)).toEqual(["保存"]);
+    });
+
+    it("委譲に成功するとフォームが消える", async () => {
+      apiFetch.mockResolvedValue({ ok: true, data: { group: { ...group, ownerId: "u2" } } });
+      renderView();
+      await userEvent.click(screen.getByRole("button", { name: "はなこさんの操作" }));
+      await userEvent.click(await screen.findByRole("menuitem", { name: "オーナーにする" }));
+      await userEvent.click(await screen.findByRole("button", { name: "オーナーにする" }));
+      await waitFor(() =>
+        expect(screen.queryByRole("heading", { level: 3, name: "メンバーを追加" })).toBeNull(),
+      );
+    });
+
+    it("自分への委譲を受け取って取り直すとフォームが出る", async () => {
+      apiFetch.mockResolvedValue({ ok: true, data: { group: { ...group, ownerId: "u2" } } });
+      renderView("u2");
+      expect(screen.queryByRole("heading", { level: 3, name: "メンバーを追加" })).toBeNull();
+      act(() => live.handlers["group.updated"]?.({ group: { id: "g1" } }));
+      expect(await screen.findByRole("heading", { level: 3, name: "メンバーを追加" })).toBeTruthy();
+    });
+
+    it("group.updated で取り直すと加わったメンバーの行が出る", async () => {
+      apiFetch.mockResolvedValue({
+        ok: true,
+        data: { group: { ...group, members: [...group.members, { id: "u4", name: "さぶろう" }] } },
+      });
+      renderView("u2");
+      act(() => live.handlers["group.updated"]?.({ group: { id: "g1" } }));
+      expect(await screen.findByText("さぶろう")).toBeTruthy();
+      expect(apiFetch).toHaveBeenCalledWith("/api/groups/g1");
+    });
   });
 });
