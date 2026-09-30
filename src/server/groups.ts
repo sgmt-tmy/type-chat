@@ -1,7 +1,7 @@
 import type { GroupRepository } from "../db/group-repository";
 import type { UserRepository } from "../db/user-repository";
 import { DomainError } from "../errors";
-import { addMember, createGroup, renameGroup, transferOwner, type Group } from "../group";
+import { addMember, createGroup, leaveGroup, renameGroup, transferOwner, type Group } from "../group";
 import { publish } from "./events";
 
 /** 一覧の1行分 */
@@ -128,4 +128,17 @@ export async function addMemberByUser(
     ]);
   }
   return toGroupDetail(users, after);
+}
+
+export async function leaveGroupByUser(
+  groups: GroupRepository,
+  groupId: string,
+  userId: string,
+): Promise<void> {
+  const before = await findGroupAsMember(groups, groupId, userId);
+  const after = leaveGroup(before, userId);
+  await groups.save(after);
+  publish({ type: "group.updated", data: { group: after } }, [
+    ...new Set([...before.members, ...after.members]),
+  ]);
 }

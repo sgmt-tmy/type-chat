@@ -5,6 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const apiFetch = vi.fn();
+const router = { replace: vi.fn() };
 const toast = { success: vi.fn(), error: vi.fn() };
 type LiveOptions = {
   handlers: Record<string, (data: unknown) => void>;
@@ -17,6 +18,7 @@ const useLiveEvents = vi.fn((options: LiveOptions) => {
 
 vi.mock("@/lib/api-client", () => ({ apiFetch: (...args: unknown[]) => apiFetch(...args) }));
 vi.mock("sonner", () => ({ toast }));
+vi.mock("next/navigation", () => ({ useRouter: () => router }));
 vi.mock("@/components/use-live-events", () => ({
   useLiveEvents: (options: LiveOptions) => useLiveEvents(options),
 }));
@@ -94,7 +96,7 @@ describe("GroupSettingsView", () => {
   it("この画面の group.updated で取り直し、応答の名前を表示する", async () => {
     apiFetch.mockResolvedValue({ ok: true, data: { group: { ...group, name: "新名" } } });
     renderView("u2");
-    act(() => live.handlers["group.updated"]?.({ group: { id: "g1" } }));
+    act(() => live.handlers["group.updated"]?.({ group: { id: "g1", members: ["me", "u2"] } }));
     expect(await screen.findByText("新名")).toBeTruthy();
     expect(apiFetch).toHaveBeenCalledWith("/api/groups/g1");
   });
@@ -174,7 +176,7 @@ describe("GroupSettingsView", () => {
     apiFetch.mockResolvedValue({ ok: true, data: { group: { ...group, ownerId: "u2" } } });
     renderView("u2");
     expect(screen.queryByLabelText("グループ名")).toBeNull();
-    act(() => live.handlers["group.updated"]?.({ group: { id: "g1" } }));
+    act(() => live.handlers["group.updated"]?.({ group: { id: "g1", members: ["me", "u2"] } }));
     expect(await screen.findByLabelText("グループ名")).toBeTruthy();
     expect(screen.getByRole("button", { name: "保存" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "わたしさんの操作" })).toBeTruthy();
@@ -263,7 +265,7 @@ describe("GroupSettingsView", () => {
       apiFetch.mockResolvedValue({ ok: true, data: { group: { ...group, ownerId: "u2" } } });
       renderView("u2");
       expect(screen.queryByRole("heading", { level: 3, name: "メンバーを追加" })).toBeNull();
-      act(() => live.handlers["group.updated"]?.({ group: { id: "g1" } }));
+      act(() => live.handlers["group.updated"]?.({ group: { id: "g1", members: ["me", "u2"] } }));
       expect(await screen.findByRole("heading", { level: 3, name: "メンバーを追加" })).toBeTruthy();
     });
 
@@ -273,9 +275,70 @@ describe("GroupSettingsView", () => {
         data: { group: { ...group, members: [...group.members, { id: "u4", name: "さぶろう" }] } },
       });
       renderView("u2");
-      act(() => live.handlers["group.updated"]?.({ group: { id: "g1" } }));
+      act(() => live.handlers["group.updated"]?.({ group: { id: "g1", members: ["me", "u2"] } }));
       expect(await screen.findByText("さぶろう")).toBeTruthy();
       expect(apiFetch).toHaveBeenCalledWith("/api/groups/g1");
+    });
+  });
+
+  describe("脱退", () => {
+    const leave = "グループから脱退";
+    const ownerOnly = "オーナーは脱退できません。先にオーナーを委譲してください";
+
+    it("オーナー以外には脱退ボタンがあり、オーナー向けの文言は出ない", () => {
+      renderView("u2");
+      expect(screen.getByRole("button", { name: leave })).toBeTruthy();
+      expect(screen.queryByText(ownerOnly)).toBeNull();
+    });
+
+    it("オーナーには脱退ボタンがなく、オーナー向けの文言が出る", () => {
+      renderView();
+      expect(screen.queryByRole("button", { name: leave })).toBeNull();
+      expect(screen.getByText(ownerOnly)).toBeTruthy();
+    });
+
+    it("オーナーが委譲に成功すると、脱退ボタンが出て文言が消える", async () => {
+      apiFetch.mockResolvedValue({ ok: true, data: { group: { ...group, ownerId: "u2" } } });
+      renderView();
+      await userEvent.click(screen.getByRole("button", { name: "はなこさんの操作" }));
+      await userEvent.click(await screen.findByRole("menuitem", { name: "オーナーにする" }));
+      await userEvent.click(await screen.findByRole("button", { name: "オーナーにする" }));
+      expect(await screen.findByRole("button", { name: leave })).toBeTruthy();
+      expect(screen.queryByText(ownerOnly)).toBeNull();
+    });
+
+    it("確認ダイアログのタイトルにグループ名が入り、主操作のボタンはない", async () => {
+      renderView("u2");
+      await userEvent.click(screen.getByRole("button", { name: leave }));
+      expect(await screen.findByRole("alertdialog")).toHaveTextContent("「雑談」から脱退しますか？");
+      screen.getAllByRole("button", { hidden: true }).forEach((b) => {
+        expect(b.className).not.toContain("bg-primary");
+      });
+    });
+
+    it("自分を含まない group.updated でホームへ移動し、取り直さない", () => {
+      renderView("u2");
+      act(() => live.handlers["group.updated"]?.({ group: { id: "g1", members: ["me"] } }));
+      expect(router.replace).toHaveBeenCalledWith("/");
+      expect(apiFetch).not.toHaveBeenCalled();
+    });
+
+    it("ほかのメンバーが抜けた group.updated では取り直し、移動しない", async () => {
+      apiFetch.mockResolvedValue({
+        ok: true,
+        data: { group: { ...group, members: [group.members[0]] } },
+      });
+      renderView();
+      act(() => live.handlers["group.updated"]?.({ group: { id: "g1", members: ["me"] } }));
+      await waitFor(() => expect(screen.getAllByRole("listitem")).toHaveLength(1));
+      expect(apiFetch).toHaveBeenCalledWith("/api/groups/g1");
+      expect(router.replace).not.toHaveBeenCalled();
+    });
+
+    it("別のグループの group.updated では移動しない", () => {
+      renderView("u2");
+      act(() => live.handlers["group.updated"]?.({ group: { id: "other", members: [] } }));
+      expect(router.replace).not.toHaveBeenCalled();
     });
   });
 });

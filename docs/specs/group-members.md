@@ -1,6 +1,6 @@
 ---
 status: approved        # draft / approved / implemented / deprecated
-updated: 2026-09-29
+updated: 2026-09-30
 ---
 
 # メンバーの追加（オーナー限定）と自己脱退
@@ -326,52 +326,52 @@ Client Component。オーナーでない利用者にだけ描画する（`GroupS
 
 ドメイン（`src/group.ts` の `leaveGroup`）
 
-- [ ] メンバー `u2` が `leaveGroup(group, "u2")` を呼ぶと、`members` から `u2` を除いた新しい `Group` が返り、元の `group` の `members` は変わらない
-- [ ] `leaveGroup` が返す `Group` の `id`・`name`・`ownerId` と、残るメンバーの順序が元の `group` と同じである
-- [ ] メンバーでない利用者が `leaveGroup` を呼ぶと、`code` が `"not_found"`、文言が `グループのメンバーではありません` の `DomainError` が投げられる
-- [ ] オーナーが `leaveGroup` を呼ぶと、`code` が `"forbidden"`、文言が `オーナーは脱退できません。先にオーナーを委譲してください` の `DomainError` が投げられる
+- [x] メンバー `u2` が `leaveGroup(group, "u2")` を呼ぶと、`members` から `u2` を除いた新しい `Group` が返り、元の `group` の `members` は変わらない
+- [x] `leaveGroup` が返す `Group` の `id`・`name`・`ownerId` と、残るメンバーの順序が元の `group` と同じである
+- [x] メンバーでない利用者が `leaveGroup` を呼ぶと、`code` が `"not_found"`、文言が `グループのメンバーではありません` の `DomainError` が投げられる
+- [x] オーナーが `leaveGroup` を呼ぶと、`code` が `"forbidden"`、文言が `オーナーは脱退できません。先にオーナーを委譲してください` の `DomainError` が投げられる
 
 ユースケース（`src/server/groups.ts` の `leaveGroupByUser`）
 
-- [ ] メンバーが `leaveGroupByUser(groups, groupId, <メンバーのid>)` を呼ぶと、`findById` で取り出したグループの `members` からその利用者が消え、ほかのメンバーの順序が変わらない
-- [ ] `leaveGroupByUser` で脱退すると、`subscribe` した変更前のメンバー全員（脱退した本人とオーナーを含む）のリスナーが、`type` が `group.updated`、`data.group.members` に脱退した本人を含まないイベントで1回ずつ呼ばれる
-- [ ] `leaveGroupByUser` で脱退しても、`subscribe` したメンバーでない利用者のリスナーは呼ばれない
-- [ ] オーナーが `leaveGroupByUser` を呼ぶと、`code` が `"forbidden"`、文言が `オーナーは脱退できません。先にオーナーを委譲してください` の `DomainError` が投げられ、`members` が変わらず、イベントが発行されない
-- [ ] メンバーでない利用者が `leaveGroupByUser` を呼ぶと、`code` が `"not_found"`、文言が `グループが見つかりません` の `DomainError` が投げられ、イベントが発行されない
+- [x] メンバーが `leaveGroupByUser(groups, groupId, <メンバーのid>)` を呼ぶと、`findById` で取り出したグループの `members` からその利用者が消え、ほかのメンバーの順序が変わらない
+- [x] `leaveGroupByUser` で脱退すると、`subscribe` した変更前のメンバー全員（脱退した本人とオーナーを含む）のリスナーが、`type` が `group.updated`、`data.group.members` に脱退した本人を含まないイベントで1回ずつ呼ばれる
+- [x] `leaveGroupByUser` で脱退しても、`subscribe` したメンバーでない利用者のリスナーは呼ばれない
+- [x] オーナーが `leaveGroupByUser` を呼ぶと、`code` が `"forbidden"`、文言が `オーナーは脱退できません。先にオーナーを委譲してください` の `DomainError` が投げられ、`members` が変わらず、イベントが発行されない
+- [x] メンバーでない利用者が `leaveGroupByUser` を呼ぶと、`code` が `"not_found"`、文言が `グループが見つかりません` の `DomainError` が投げられ、イベントが発行されない
 
 `DELETE /api/groups/[groupId]/members/me`
 
-- [ ] メンバーで `DELETE /api/groups/[groupId]/members/me` を呼ぶと、204 と空の本文が返り、その後の同じ利用者の `GET /api/groups/[groupId]` が 404 になる
-- [ ] `DELETE` で脱退した後、同じ利用者の `GET /api/groups` にそのグループが含まれない
-- [ ] `DELETE` に成功すると、`subscribe` したオーナーのリスナーが、`data.group.id` がそのグループの `id` の `group.updated` のイベントで呼ばれる
-- [ ] オーナーで `DELETE` を呼ぶと、403（`code: "forbidden"`、`message: "オーナーは脱退できません。先にオーナーを委譲してください"`）が返り、`members` が変わらない
-- [ ] メンバーでない利用者で `DELETE` を呼ぶと、404（`code: "not_found"`、`message: "グループが見つかりません"`）が返る
-- [ ] 存在しないID（UUID の形）で `DELETE` を呼ぶと、メンバーでない利用者への応答と同じステータスと本文の 404 が返る
-- [ ] Cookie のない `Request` で `DELETE` を呼ぶと、401（`code: "unauthenticated"`）が返る
+- [x] メンバーで `DELETE /api/groups/[groupId]/members/me` を呼ぶと、204 と空の本文が返り、その後の同じ利用者の `GET /api/groups/[groupId]` が 404 になる
+- [x] `DELETE` で脱退した後、同じ利用者の `GET /api/groups` にそのグループが含まれない
+- [x] `DELETE` に成功すると、`subscribe` したオーナーのリスナーが、`data.group.id` がそのグループの `id` の `group.updated` のイベントで呼ばれる
+- [x] オーナーで `DELETE` を呼ぶと、403（`code: "forbidden"`、`message: "オーナーは脱退できません。先にオーナーを委譲してください"`）が返り、`members` が変わらない
+- [x] メンバーでない利用者で `DELETE` を呼ぶと、404（`code: "not_found"`、`message: "グループが見つかりません"`）が返る
+- [x] 存在しないID（UUID の形）で `DELETE` を呼ぶと、メンバーでない利用者への応答と同じステータスと本文の 404 が返る
+- [x] Cookie のない `Request` で `DELETE` を呼ぶと、401（`code: "unauthenticated"`）が返る
 
 脱退ボタン（`src/components/leave-group-button.tsx`）
 
-- [ ] `LeaveGroupButton` に「グループから脱退」ボタンがあり、そのクラスに `bg-destructive` が含まれ、`bg-primary` が含まれない
-- [ ] 「グループから脱退」を押すと、`alertdialog` に `「<groupName>」から脱退しますか？` と `脱退すると、このグループのメッセージを読んだり送ったりできなくなります。もう一度参加するには、オーナーに追加してもらう必要があります。` が出る
-- [ ] 確認ダイアログの「脱退する」ボタンのクラスに `bg-destructive` が含まれる
-- [ ] 確認ダイアログの「キャンセル」を押すと、`DELETE` が呼ばれずにダイアログが閉じる
-- [ ] 確認ダイアログの「脱退する」を押すと、`DELETE /api/groups/<groupId>/members/me` が呼ばれる
-- [ ] 送信中は、確認ダイアログの確定ボタンが無効で、文言が「脱退中…」になる
-- [ ] 脱退に成功すると、`toast.success("「<groupName>」から脱退しました")` が呼ばれ、`router.replace("/")` が呼ばれる
-- [ ] 脱退が失敗すると、`toast.error` がその `message` で呼ばれ、ダイアログが開いたままで、`router.replace` が呼ばれない
+- [x] `LeaveGroupButton` に「グループから脱退」ボタンがあり、そのクラスに `bg-destructive` が含まれ、`bg-primary` が含まれない
+- [x] 「グループから脱退」を押すと、`alertdialog` に `「<groupName>」から脱退しますか？` と `脱退すると、このグループのメッセージを読んだり送ったりできなくなります。もう一度参加するには、オーナーに追加してもらう必要があります。` が出る
+- [x] 確認ダイアログの「脱退する」ボタンのクラスに `bg-destructive` が含まれる
+- [x] 確認ダイアログの「キャンセル」を押すと、`DELETE` が呼ばれずにダイアログが閉じる
+- [x] 確認ダイアログの「脱退する」を押すと、`DELETE /api/groups/<groupId>/members/me` が呼ばれる
+- [x] 送信中は、確認ダイアログの確定ボタンが無効で、文言が「脱退中…」になる
+- [x] 脱退に成功すると、`toast.success("「<groupName>」から脱退しました")` が呼ばれ、`router.replace("/")` が呼ばれる
+- [x] 脱退が失敗すると、`toast.error` がその `message` で呼ばれ、ダイアログが開いたままで、`router.replace` が呼ばれない
 
 設定画面への組み込み（`src/components/group-settings-view.tsx`）
 
-- [ ] オーナーでない利用者で `GroupSettingsView` を描画すると、「グループから脱退」ボタンがあり、`オーナーは脱退できません。先にオーナーを委譲してください` が出ない
-- [ ] オーナーで `GroupSettingsView` を描画すると、「グループから脱退」ボタンがなく、`オーナーは脱退できません。先にオーナーを委譲してください` が出る
-- [ ] オーナーで描画した `GroupSettingsView` で委譲に成功すると、「グループから脱退」ボタンが出て、`オーナーは脱退できません。先にオーナーを委譲してください` が消える
-- [ ] オーナーでない利用者で描画した `GroupSettingsView` の確認ダイアログのタイトルに、表示中のグループ名が入る
-- [ ] オーナーでない利用者で描画した `GroupSettingsView` に、クラスに `bg-primary` を含むボタンがない
-- [ ] この画面の `groupId` で、`currentUserId` を `members` に含まない `group.updated` のハンドラを呼ぶと、`router.replace("/")` が呼ばれ、`GET /api/groups/<groupId>` が呼ばれない
-- [ ] この画面の `groupId` で、ほかのメンバーが抜けた（`currentUserId` を含む）`group.updated` のハンドラを呼ぶと、`GET /api/groups/<groupId>` が呼ばれ、応答で抜けたメンバーの行が消え、`router.replace` が呼ばれない
-- [ ] 別の `groupId` で `currentUserId` を `members` に含まない `group.updated` のハンドラを呼んでも、`router.replace` が呼ばれない
-- [ ] `GroupSettingsView` で `useLiveEvents` が1回だけ使われる
-- [ ] `src/components/leave-group-button.tsx` の内容に、`setInterval` と `setTimeout` が含まれない（ファイルを読んで検査する）
+- [x] オーナーでない利用者で `GroupSettingsView` を描画すると、「グループから脱退」ボタンがあり、`オーナーは脱退できません。先にオーナーを委譲してください` が出ない
+- [x] オーナーで `GroupSettingsView` を描画すると、「グループから脱退」ボタンがなく、`オーナーは脱退できません。先にオーナーを委譲してください` が出る
+- [x] オーナーで描画した `GroupSettingsView` で委譲に成功すると、「グループから脱退」ボタンが出て、`オーナーは脱退できません。先にオーナーを委譲してください` が消える
+- [x] オーナーでない利用者で描画した `GroupSettingsView` の確認ダイアログのタイトルに、表示中のグループ名が入る
+- [x] オーナーでない利用者で描画した `GroupSettingsView` に、クラスに `bg-primary` を含むボタンがない
+- [x] この画面の `groupId` で、`currentUserId` を `members` に含まない `group.updated` のハンドラを呼ぶと、`router.replace("/")` が呼ばれ、`GET /api/groups/<groupId>` が呼ばれない
+- [x] この画面の `groupId` で、ほかのメンバーが抜けた（`currentUserId` を含む）`group.updated` のハンドラを呼ぶと、`GET /api/groups/<groupId>` が呼ばれ、応答で抜けたメンバーの行が消え、`router.replace` が呼ばれない
+- [x] 別の `groupId` で `currentUserId` を `members` に含まない `group.updated` のハンドラを呼んでも、`router.replace` が呼ばれない
+- [x] `GroupSettingsView` で `useLiveEvents` が1回だけ使われる
+- [x] `src/components/leave-group-button.tsx` の内容に、`setInterval` と `setTimeout` が含まれない（ファイルを読んで検査する）
 
 チャット画面（`src/components/chat-view.tsx`）
 

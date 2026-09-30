@@ -2,12 +2,14 @@
 
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { apiFetch } from "@/lib/api-client";
 import type { GroupDetail } from "../server/groups";
 import { AddMemberForm } from "./add-member-form";
+import { LeaveGroupButton } from "./leave-group-button";
 import { MemberList } from "./member-list";
 import { RenameGroupForm } from "./rename-group-form";
 import { useLiveEvents } from "./use-live-events";
@@ -25,6 +27,7 @@ export function GroupSettingsView({
   initialGroup,
   users,
 }: GroupSettingsViewProps): React.JSX.Element {
+  const router = useRouter();
   const [group, setGroup] = useState(initialGroup);
   const latestRequest = useRef(0);
   const isOwner = group.ownerId === currentUserId;
@@ -44,7 +47,12 @@ export function GroupSettingsView({
   useLiveEvents({
     handlers: {
       "group.updated": (data) => {
-        if (data.group.id === groupId) refetch();
+        if (data.group.id !== groupId) return;
+        if (!data.group.members.includes(currentUserId)) {
+          router.replace("/");
+          return;
+        }
+        refetch();
       },
     },
     onReconnect: refetch,
@@ -94,6 +102,15 @@ export function GroupSettingsView({
           ) : null}
         </CardContent>
       </Card>
+      <div>
+        {isOwner ? (
+          <p className="text-sm text-muted-foreground">
+            オーナーは脱退できません。先にオーナーを委譲してください
+          </p>
+        ) : (
+          <LeaveGroupButton groupId={groupId} groupName={group.name} />
+        )}
+      </div>
     </div>
   );
 }

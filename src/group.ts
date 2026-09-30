@@ -33,6 +33,16 @@ export function addMember(group: Group, requesterId: string, userId: string): Gr
   return { ...group, members: [...group.members, userId] };
 }
 
+export function leaveGroup(group: Group, requesterId: string): Group {
+  if (!group.members.includes(requesterId)) {
+    throw new DomainError("not_found", "グループのメンバーではありません");
+  }
+  if (requesterId === group.ownerId) {
+    throw new DomainError("forbidden", "オーナーは脱退できません。先にオーナーを委譲してください");
+  }
+  return { ...group, members: group.members.filter((id) => id !== requesterId) };
+}
+
 export function removeMember(group: Group, userId: string): Group {
   if (userId === group.ownerId) {
     throw new DomainError("conflict", "オーナーは削除できません");
