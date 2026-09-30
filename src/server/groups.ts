@@ -1,7 +1,7 @@
 import type { GroupRepository } from "../db/group-repository";
 import type { UserRepository } from "../db/user-repository";
 import { DomainError } from "../errors";
-import { createGroup, renameGroup, transferOwner, type Group } from "../group";
+import { addMember, createGroup, renameGroup, transferOwner, type Group } from "../group";
 import { publish } from "./events";
 
 /** 一覧の1行分 */
@@ -106,5 +106,26 @@ export async function transferOwnerByUser(
   publish({ type: "group.updated", data: { group: after } }, [
     ...new Set([...before.members, ...after.members]),
   ]);
+  return toGroupDetail(users, after);
+}
+
+export async function addMemberByUser(
+  groups: GroupRepository,
+  users: UserRepository,
+  groupId: string,
+  userId: string,
+  memberUserId: string,
+): Promise<GroupDetail> {
+  const before = await findGroupAsMember(groups, groupId, userId);
+  const after = addMember(before, userId, memberUserId);
+  if ((await users.findById(memberUserId)) === null) {
+    throw new DomainError("not_found", "利用者が見つかりません");
+  }
+  if (after !== before) {
+    await groups.save(after);
+    publish({ type: "group.updated", data: { group: after } }, [
+      ...new Set([...before.members, ...after.members]),
+    ]);
+  }
   return toGroupDetail(users, after);
 }

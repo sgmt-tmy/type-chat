@@ -12,7 +12,7 @@ vi.mock("@/db/client", async (importOriginal) => ({
   getDb: () => db,
 }));
 
-const { PUT } = await import("./route");
+const { POST } = await import("./route");
 
 async function newUser(name: string): Promise<string> {
   const id = crypto.randomUUID();
@@ -20,10 +20,10 @@ async function newUser(name: string): Promise<string> {
   return id;
 }
 
-function put(groupId: string, userId: string | null, body: unknown) {
-  return PUT(
-    new Request(`http://localhost/api/groups/${groupId}/owner`, {
-      method: "PUT",
+function post(groupId: string, userId: string | null, body: unknown) {
+  return POST(
+    new Request(`http://localhost/api/groups/${groupId}/members`, {
+      method: "POST",
       headers: {
         "content-type": "application/json",
         ...(userId ? { cookie: `type_chat_user_id=${userId}` } : {}),
@@ -37,55 +37,61 @@ function put(groupId: string, userId: string | null, body: unknown) {
 async function prepare() {
   const owner = await newUser("たろう");
   const member = await newUser("はなこ");
-  const outsider = await newUser("じろう");
+  const other = await newUser("じろう");
+  const outsider = await newUser("さぶろう");
   const base = createGroup("雑談", owner);
-  const g = addMember(base, owner, member);
   await createGroupRepository(db).insert(base);
+  const g = addMember(base, owner, member);
   await createGroupRepository(db).save(g);
-  return { owner, member, outsider, g };
+  return { owner, member, other, outsider, g };
 }
 
 beforeEach(() => {
   db = createDb(":memory:");
 });
 
-describe("PUT /api/groups/[groupId]/owner", () => {
-  it("オーナーがメンバーに委譲すると 200 と group.updated", async () => {
-    const { owner, member, g } = await prepare();
+describe("POST /api/groups/[groupId]/members", () => {
+  it("オーナーが追加すると 200 と group.updated（追加された利用者にも届く）", async () => {
+    const { owner, member, other, g } = await prepare();
     const got: LiveEvent[] = [];
-    const off = subscribe(member, (e) => got.push(e));
-    const res = await put(g.id, owner, { userId: member });
+    const off = subscribe(other, (e) => got.push(e));
+    const res = await post(g.id, owner, { userId: other });
     off();
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({
       group: {
         id: g.id,
         name: "雑談",
-        ownerId: member,
+        ownerId: owner,
         members: [
           { id: owner, name: "たろう" },
           { id: member, name: "はなこ" },
+          { id: other, name: "じろう" },
         ],
       },
     });
     expect(got).toHaveLength(1);
-    expect(got[0]).toMatchObject({ type: "group.updated", data: { group: { ownerId: member } } });
+    expect(got[0]).toMatchObject({
+      type: "group.updated",
+      data: { group: { id: g.id, members: [owner, member, other] } },
+    });
+    expect((await createGroupRepository(db).listByMember(other)).map((x) => x.id)).toEqual([g.id]);
   });
 
   it("オーナー以外は 403 で変わらない", async () => {
-    const { owner, member, g } = await prepare();
-    const res = await put(g.id, member, { userId: member });
+    const { owner, member, other, g } = await prepare();
+    const res = await post(g.id, member, { userId: other });
     expect(res.status).toBe(403);
     expect(await res.json()).toEqual({
-      error: { code: "forbidden", message: "オーナー権限の委譲はオーナーのみ可能です" },
+      error: { code: "forbidden", message: "メンバーの追加はオーナーのみ可能です" },
     });
-    expect((await createGroupRepository(db).findById(g.id))?.ownerId).toBe(owner);
+    expect((await createGroupRepository(db).findById(g.id))?.members).toEqual([owner, member]);
   });
 
   it("メンバーでない利用者と存在しないIDには同じ 404", async () => {
-    const { outsider, member, g } = await prepare();
-    const a = await put(g.id, outsider, { userId: member });
-    const b = await put(crypto.randomUUID(), outsider, { userId: member });
+    const { outsider, other, g } = await prepare();
+    const a = await post(g.id, outsider, { userId: other });
+    const b = await post(crypto.randomUUID(), outsider, { userId: other });
     expect(a.status).toBe(404);
     expect(b.status).toBe(404);
     const body = await a.json();
@@ -93,30 +99,28 @@ describe("PUT /api/groups/[groupId]/owner", () => {
     expect(await b.json()).toEqual(body);
   });
 
-  it("自分への委譲は 400", async () => {
-    const { owner, g } = await prepare();
-    const res = await put(g.id, owner, { userId: owner });
-    expect(res.status).toBe(400);
+  it("存在しない利用者は 404 で変わらない", async () => {
+    const { owner, member, g } = await prepare();
+    const res = await post(g.id, owner, { userId: crypto.randomUUID() });
+    expect(res.status).toBe(404);
     expect(await res.json()).toEqual({
-      error: { code: "validation", message: "委譲先が現在のオーナーと同じです" },
+      error: { code: "not_found", message: "利用者が見つかりません" },
     });
+    expect((await createGroupRepository(db).findById(g.id))?.members).toEqual([owner, member]);
   });
 
-  it("メンバーでない委譲先は 400", async () => {
-    const { owner, outsider, g } = await prepare();
-    const res = await put(g.id, owner, { userId: outsider });
-    expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({
-      error: { code: "validation", message: "委譲先はグループのメンバーである必要があります" },
-    });
-    expect((await createGroupRepository(db).findById(g.id))?.ownerId).toBe(owner);
+  it("すでにメンバーなら 200 で数は変わらない", async () => {
+    const { owner, member, g } = await prepare();
+    const res = await post(g.id, owner, { userId: member });
+    expect(res.status).toBe(200);
+    expect((await res.json()).group.members).toHaveLength(2);
   });
 
   it("userId がなければ 400 で発行しない", async () => {
     const { owner, g } = await prepare();
     const got: LiveEvent[] = [];
     const off = subscribe(owner, (e) => got.push(e));
-    const res = await put(g.id, owner, {});
+    const res = await post(g.id, owner, {});
     off();
     expect(res.status).toBe(400);
     expect(await res.json()).toEqual({
@@ -126,7 +130,7 @@ describe("PUT /api/groups/[groupId]/owner", () => {
   });
 
   it("Cookie がなければ 401", async () => {
-    const res = await put(crypto.randomUUID(), null, { userId: "x" });
+    const res = await post(crypto.randomUUID(), null, { userId: "x" });
     expect(res.status).toBe(401);
     expect((await res.json()).error.code).toBe("unauthenticated");
   });

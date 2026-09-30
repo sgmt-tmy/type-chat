@@ -87,7 +87,7 @@ describe("PATCH /api/groups/[groupId]", () => {
     const outsider = await newUser("じろう");
     const base = createGroup("雑談", owner);
     await createGroupRepository(db).insert(base);
-    const g = addMember(base, member);
+    const g = addMember(base, owner, member);
     await createGroupRepository(db).save(g);
     return { owner, member, outsider, g };
   }

@@ -6,6 +6,7 @@ import { createUserRepository } from "@/db/user-repository";
 import { DomainError } from "@/errors";
 import { getGroupDetail, type GroupDetail } from "@/server/groups";
 import { requireCurrentUserInPage } from "@/server/session";
+import { listUsers } from "@/server/users";
 
 export const dynamic = "force-dynamic";
 
@@ -27,5 +28,13 @@ export default async function GroupSettingsPage(props: {
     if (error instanceof DomainError && error.code === "not_found") notFound();
     throw error;
   }
-  return <GroupSettingsView groupId={group.id} currentUserId={user.id} initialGroup={group} />;
+  const users = (await listUsers(createUserRepository(db))).map((u) => ({ id: u.id, name: u.name }));
+  return (
+    <GroupSettingsView
+      groupId={group.id}
+      currentUserId={user.id}
+      initialGroup={group}
+      users={users}
+    />
+  );
 }

@@ -55,7 +55,7 @@ export type Group = {
 export const GROUP_NAME_MAX_LENGTH = 50;
 
 export function createGroup(name: string, ownerId: string): Group;
-export function addMember(group: Group, userId: string): Group;
+export function addMember(group: Group, requesterId: string, userId: string): Group;
 export function removeMember(group: Group, userId: string): Group;
 export function renameGroup(group: Group, requesterId: string, newName: string): Group;
 export function transferOwner(group: Group, requesterId: string, newOwnerId: string): Group;
@@ -118,6 +118,7 @@ export function sortMessagesByTime(messages: Message[]): Message[];
 | --- | --- | --- | --- |
 | `createGroup` | トリム後の `name` が空 | `グループ名は空にできません` | `validation` |
 | `createGroup` | トリム後の `name` が50文字超（新規） | `グループ名は50文字以内で入力してください` | `validation` |
+| `addMember` | `requesterId` がオーナーでない | `メンバーの追加はオーナーのみ可能です` | `forbidden` |
 | `removeMember` | `userId` がオーナー | `オーナーは削除できません` | `conflict` |
 | `renameGroup` | `requesterId` がオーナーでない | `グループ名の変更はオーナーのみ可能です` | `forbidden` |
 | `renameGroup` | トリム後の `newName` が空 | `グループ名は空にできません` | `validation` |
@@ -167,6 +168,7 @@ export function sortMessagesByTime(messages: Message[]): Message[];
 ### エラーの種別
 
 - [x] `createGroup` にトリム後が空の名前を渡すと、`code` が `"validation"`、文言が `グループ名は空にできません` の `DomainError` が投げられる
+- [x] `addMember` をオーナー以外が実行すると、`code` が `"forbidden"`、文言が `メンバーの追加はオーナーのみ可能です` の `DomainError` が投げられる
 - [x] `removeMember` でオーナーを外そうとすると、`code` が `"conflict"`、文言が `オーナーは削除できません` の `DomainError` が投げられる
 - [x] `renameGroup` をオーナー以外が実行すると、`code` が `"forbidden"`、文言が `グループ名の変更はオーナーのみ可能です` の `DomainError` が投げられる
 - [x] `renameGroup` にトリム後が空の名前を渡すと、`code` が `"validation"`、文言が `グループ名は空にできません` の `DomainError` が投げられる
@@ -180,7 +182,6 @@ export function sortMessagesByTime(messages: Message[]): Message[];
 
 ## 対象外
 
-- `addMember` の権限チェック（オーナー限定にすること。`docs/specs/group-members.md` で扱う）
 - メッセージ・グループの削除
 - 永続化（DB保存・IDからの検索。`docs/specs/persistence.md` で扱う）。`not_found` を実際に投げる処理もそちらで扱う
 - `DomainError` の `code` と HTTP ステータスの対応づけ（API の仕様で扱う）
