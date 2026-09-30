@@ -45,3 +45,9 @@ export function postMessageToGroup(
 export function sortMessagesByTime(messages: Message[]): Message[] {
   return [...messages].sort((a, b) => a.sentAt.getTime() - b.sentAt.getTime());
 }
+
+export function assertCanDeleteMessage(message: Message, requesterId: string): void {
+  if (message.senderId !== requesterId) {
+    throw new DomainError("forbidden", "メッセージを削除できるのは投稿者のみです");
+  }
+}

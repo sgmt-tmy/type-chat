@@ -6,7 +6,7 @@ import { createUserRepository } from "../db/user-repository";
 import { DomainError } from "../errors";
 import { createGroup } from "../group";
 import { subscribe, type LiveEvent } from "./events";
-import { listMessagesOfGroup, postMessageByUser } from "./messages";
+import { deleteMessageByUser, listMessagesOfGroup, postMessageByUser } from "./messages";
 
 async function setup() {
   const db = createDb(":memory:");
@@ -98,5 +98,100 @@ describe("postMessageByUser", () => {
     expect(err).toMatchObject({ code, message });
     expect(await messages.listByGroup(g.id)).toEqual([]);
     expect(count).toBe(0);
+  });
+});
+
+describe("deleteMessageByUser", () => {
+  async function withMessage() {
+    const s = await setup();
+    const m = await postMessageByUser(
+      s.groups,
+      s.messages,
+      s.users,
+      s.g.id,
+      "u1",
+      "hi",
+    );
+    return { ...s, m };
+  }
+
+  it("投稿者が削除でき、メンバー全員に message.deleted が1回ずつ届く", async () => {
+    const { groups, messages, g, m } = await withMessage();
+    const got: Record<string, LiveEvent[]> = { u1: [], u2: [], u3: [] };
+    const offs = Object.keys(got).map((id) =>
+      subscribe(id, (e) => got[id].push(e)),
+    );
+    await deleteMessageByUser(groups, messages, g.id, "u1", m.id);
+    offs.forEach((off) => off());
+    expect(await messages.findById(m.id)).toBeNull();
+    for (const id of ["u1", "u2"]) {
+      expect(got[id]).toHaveLength(1);
+      expect(got[id][0]).toMatchObject({
+        type: "message.deleted",
+        data: { groupId: g.id, messageId: m.id },
+      });
+    }
+    expect(got.u3).toHaveLength(0);
+  });
+
+  it.each([
+    [
+      "投稿者でないメンバー",
+      "u2",
+      "m",
+      "forbidden",
+      "メッセージを削除できるのは投稿者のみです",
+    ],
+    [
+      "メンバーでない利用者",
+      "u3",
+      "m",
+      "not_found",
+      "グループが見つかりません",
+    ],
+    [
+      "存在しないメッセージ",
+      "u1",
+      "none",
+      "not_found",
+      "メッセージが見つかりません",
+    ],
+  ])(
+    "%s は失敗し、削除も発行もしない",
+    async (_name, uid, target, code, message) => {
+      const { groups, messages, g, m } = await withMessage();
+      let count = 0;
+      const off = subscribe("u1", () => count++);
+      const err = await deleteMessageByUser(
+        groups,
+        messages,
+        g.id,
+        uid,
+        target === "m" ? m.id : crypto.randomUUID(),
+      ).catch((e) => e);
+      off();
+      expect(err).toBeInstanceOf(DomainError);
+      expect(err).toMatchObject({ code, message });
+      expect(await messages.findById(m.id)).not.toBeNull();
+      expect(count).toBe(0);
+    },
+  );
+
+  it("別のグループのメッセージIDは not_found で、メッセージが残る", async () => {
+    const { groups, messages, m } = await withMessage();
+    const other = createGroup("別", "u1");
+    await groups.insert(other);
+    const err = await deleteMessageByUser(
+      groups,
+      messages,
+      other.id,
+      "u1",
+      m.id,
+    ).catch((e) => e);
+    expect(err).toMatchObject({
+      code: "not_found",
+      message: "メッセージが見つかりません",
+    });
+    expect(await messages.findById(m.id)).not.toBeNull();
   });
 });

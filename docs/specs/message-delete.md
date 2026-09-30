@@ -1,6 +1,6 @@
 ---
-status: approved        # draft / approved / implemented / deprecated
-updated: 2026-09-29
+status: implemented        # draft / approved / implemented / deprecated
+updated: 2026-09-30
 ---
 
 # 投稿者本人によるメッセージの削除
@@ -138,51 +138,51 @@ export type MessageListProps = {
 
 ### ドメイン（`src/message.ts` の `assertCanDeleteMessage`）
 
-- [ ] 投稿者本人（`requesterId` が `message.senderId` と同じ）で `assertCanDeleteMessage` を呼んでも、例外が投げられない
-- [ ] 投稿者本人でない利用者で `assertCanDeleteMessage` を呼ぶと、`code` が `"forbidden"`、文言が `メッセージを削除できるのは投稿者のみです` の `DomainError` が投げられる
+- [x] 投稿者本人（`requesterId` が `message.senderId` と同じ）で `assertCanDeleteMessage` を呼んでも、例外が投げられない
+- [x] 投稿者本人でない利用者で `assertCanDeleteMessage` を呼ぶと、`code` が `"forbidden"`、文言が `メッセージを削除できるのは投稿者のみです` の `DomainError` が投げられる
 
 ### ユースケース（`src/server/messages.ts` の `deleteMessageByUser`）
 
-- [ ] 投稿者本人が `deleteMessageByUser(groups, messages, groupId, <投稿者のid>, messageId)` を呼ぶと、その後の `MessageRepository.findById(messageId)` が `null` を返す
-- [ ] `deleteMessageByUser` で削除すると、`subscribe` した削除した時点のグループのメンバー全員（削除した本人を含む）のリスナーが、`type` が `message.deleted`、`data.groupId` がそのグループの `id`、`data.messageId` がそのメッセージの `id` のイベントで1回ずつ呼ばれる
-- [ ] `deleteMessageByUser` で削除しても、`subscribe` したメンバーでない利用者のリスナーは呼ばれない
-- [ ] 投稿者でないメンバーが `deleteMessageByUser` を呼ぶと、`code` が `"forbidden"`、文言が `メッセージを削除できるのは投稿者のみです` の `DomainError` が投げられ、メッセージが残り、イベントが発行されない
-- [ ] メンバーでない利用者が `deleteMessageByUser` を呼ぶと、`code` が `"not_found"`、文言が `グループが見つかりません` の `DomainError` が投げられ、イベントが発行されない
-- [ ] 存在しないメッセージIDで `deleteMessageByUser` を呼ぶと、`code` が `"not_found"`、文言が `メッセージが見つかりません` の `DomainError` が投げられる
-- [ ] 別のグループのメッセージIDで `deleteMessageByUser` を呼ぶと、`code` が `"not_found"`、文言が `メッセージが見つかりません` の `DomainError` が投げられ、そのメッセージが残る
+- [x] 投稿者本人が `deleteMessageByUser(groups, messages, groupId, <投稿者のid>, messageId)` を呼ぶと、その後の `MessageRepository.findById(messageId)` が `null` を返す
+- [x] `deleteMessageByUser` で削除すると、`subscribe` した削除した時点のグループのメンバー全員（削除した本人を含む）のリスナーが、`type` が `message.deleted`、`data.groupId` がそのグループの `id`、`data.messageId` がそのメッセージの `id` のイベントで1回ずつ呼ばれる
+- [x] `deleteMessageByUser` で削除しても、`subscribe` したメンバーでない利用者のリスナーは呼ばれない
+- [x] 投稿者でないメンバーが `deleteMessageByUser` を呼ぶと、`code` が `"forbidden"`、文言が `メッセージを削除できるのは投稿者のみです` の `DomainError` が投げられ、メッセージが残り、イベントが発行されない
+- [x] メンバーでない利用者が `deleteMessageByUser` を呼ぶと、`code` が `"not_found"`、文言が `グループが見つかりません` の `DomainError` が投げられ、イベントが発行されない
+- [x] 存在しないメッセージIDで `deleteMessageByUser` を呼ぶと、`code` が `"not_found"`、文言が `メッセージが見つかりません` の `DomainError` が投げられる
+- [x] 別のグループのメッセージIDで `deleteMessageByUser` を呼ぶと、`code` が `"not_found"`、文言が `メッセージが見つかりません` の `DomainError` が投げられ、そのメッセージが残る
 
 ### `DELETE /api/groups/[groupId]/messages/[messageId]`
 
-- [ ] 投稿者本人で `DELETE /api/groups/[groupId]/messages/[messageId]` を呼ぶと、204 と空の本文が返り、その後の同じグループの `GET /api/groups/[groupId]/messages` にそのメッセージが含まれない
-- [ ] `DELETE` に成功すると、`subscribe` したグループの別のメンバーのリスナーが、`data.groupId` がそのグループの `id`、`data.messageId` がそのメッセージの `id` の `message.deleted` のイベントで呼ばれる
-- [ ] 投稿者でないメンバーで `DELETE` を呼ぶと、403（`code: "forbidden"`、`message: "メッセージを削除できるのは投稿者のみです"`）が返り、メッセージが残る
-- [ ] メンバーでない利用者で `DELETE` を呼ぶと、404（`code: "not_found"`、`message: "メッセージが見つかりません"`）が返る
-- [ ] 存在しないメッセージID（UUID の形）で `DELETE` を呼ぶと、404（`code: "not_found"`、`message: "メッセージが見つかりません"`）が返る
-- [ ] 別のグループのメッセージIDで、そのグループのメンバーが `DELETE` を呼ぶと、404（`code: "not_found"`、`message: "メッセージが見つかりません"`）が返り、そのメッセージが残る
-- [ ] 存在しないグループID（UUID の形）で `DELETE` を呼ぶと、404（`code: "not_found"`、`message: "メッセージが見つかりません"`）が返る
-- [ ] Cookie のない `Request` で `DELETE` を呼ぶと、401（`code: "unauthenticated"`）が返る
+- [x] 投稿者本人で `DELETE /api/groups/[groupId]/messages/[messageId]` を呼ぶと、204 と空の本文が返り、その後の同じグループの `GET /api/groups/[groupId]/messages` にそのメッセージが含まれない
+- [x] `DELETE` に成功すると、`subscribe` したグループの別のメンバーのリスナーが、`data.groupId` がそのグループの `id`、`data.messageId` がそのメッセージの `id` の `message.deleted` のイベントで呼ばれる
+- [x] 投稿者でないメンバーで `DELETE` を呼ぶと、403（`code: "forbidden"`、`message: "メッセージを削除できるのは投稿者のみです"`）が返り、メッセージが残る
+- [x] メンバーでない利用者で `DELETE` を呼ぶと、404（`code: "not_found"`、`message: "メッセージが見つかりません"`）が返る
+- [x] 存在しないメッセージID（UUID の形）で `DELETE` を呼ぶと、404（`code: "not_found"`、`message: "メッセージが見つかりません"`）が返る
+- [x] 別のグループのメッセージIDで、そのグループのメンバーが `DELETE` を呼ぶと、404（`code: "not_found"`、`message: "メッセージが見つかりません"`）が返り、そのメッセージが残る
+- [x] 存在しないグループID（UUID の形）で `DELETE` を呼ぶと、404（`code: "not_found"`、`message: "メッセージが見つかりません"`）が返る
+- [x] Cookie のない `Request` で `DELETE` を呼ぶと、401（`code: "unauthenticated"`）が返る
 
 ### メッセージ一覧（`src/components/message-list.tsx`）
 
-- [ ] 自分のメッセージの行に、`aria-label` が `メッセージの操作` のボタンがある
-- [ ] 他人のメッセージの行に、`aria-label` が `メッセージの操作` のボタンがない
-- [ ] 自分のメッセージの操作メニューを開くと、「削除」の項目がある
-- [ ] 「削除」を選ぶと、`alertdialog` に `このメッセージを削除しますか？` と `削除すると元に戻せません。` が出る
-- [ ] 確認ダイアログの「削除する」ボタンのクラスに `bg-destructive` が含まれる
-- [ ] 確認ダイアログの「キャンセル」を押すと、`DELETE` が呼ばれずにダイアログが閉じる
-- [ ] 確認ダイアログの「削除する」を押すと、`DELETE /api/groups/<groupId>/messages/<messageId>` が呼ばれる
-- [ ] 送信中は、確認ダイアログの確定ボタンが無効で、文言が「削除中…」になる
-- [ ] 削除に成功すると、`toast.success("メッセージを削除しました")` が呼ばれ、`onDeleted` がそのメッセージの `id` で1回呼ばれる
-- [ ] 削除が失敗すると、`toast.error` がその `message` で呼ばれ、ダイアログが開いたままで、`onDeleted` が呼ばれない
-- [ ] `src/components/message-list.tsx` の内容に、`setInterval` と `setTimeout` が含まれない（ファイルを読んで検査する）
+- [x] 自分のメッセージの行に、`aria-label` が `メッセージの操作` のボタンがある
+- [x] 他人のメッセージの行に、`aria-label` が `メッセージの操作` のボタンがない
+- [x] 自分のメッセージの操作メニューを開くと、「削除」の項目がある
+- [x] 「削除」を選ぶと、`alertdialog` に `このメッセージを削除しますか？` と `削除すると元に戻せません。` が出る
+- [x] 確認ダイアログの「削除する」ボタンのクラスに `bg-destructive` が含まれる
+- [x] 確認ダイアログの「キャンセル」を押すと、`DELETE` が呼ばれずにダイアログが閉じる
+- [x] 確認ダイアログの「削除する」を押すと、`DELETE /api/groups/<groupId>/messages/<messageId>` が呼ばれる
+- [x] 送信中は、確認ダイアログの確定ボタンが無効で、文言が「削除中…」になる
+- [x] 削除に成功すると、`toast.success("メッセージを削除しました")` が呼ばれ、`onDeleted` がそのメッセージの `id` で1回呼ばれる
+- [x] 削除が失敗すると、`toast.error` がその `message` で呼ばれ、ダイアログが開いたままで、`onDeleted` が呼ばれない
+- [x] `src/components/message-list.tsx` の内容に、`setInterval` と `setTimeout` が含まれない（ファイルを読んで検査する）
 
 ### チャット画面の本体（`src/components/chat-view.tsx`）
 
-- [ ] `ChatView` で自分のメッセージの削除に成功すると、`onDeleted` が呼ばれ、そのメッセージが一覧から消える
-- [ ] `ChatView` で、この画面の `groupId` の `message.deleted` のハンドラを、一覧にあるメッセージの `id` で呼ぶと、そのメッセージが一覧から消える
-- [ ] `ChatView` で、別の `groupId` の `message.deleted` のハンドラを呼んでも、一覧が変わらない
-- [ ] `ChatView` で、一覧にない `id` の `message.deleted` のハンドラを呼んでも、例外にならず一覧が変わらない
-- [ ] `ChatView` で自分の削除の成功（`onDeleted`）の後に、同じ `id` の `message.deleted` のハンドラを呼んでも、例外にならない
+- [x] `ChatView` で自分のメッセージの削除に成功すると、`onDeleted` が呼ばれ、そのメッセージが一覧から消える
+- [x] `ChatView` で、この画面の `groupId` の `message.deleted` のハンドラを、一覧にあるメッセージの `id` で呼ぶと、そのメッセージが一覧から消える
+- [x] `ChatView` で、別の `groupId` の `message.deleted` のハンドラを呼んでも、一覧が変わらない
+- [x] `ChatView` で、一覧にない `id` の `message.deleted` のハンドラを呼んでも、例外にならず一覧が変わらない
+- [x] `ChatView` で自分の削除の成功（`onDeleted`）の後に、同じ `id` の `message.deleted` のハンドラを呼んでも、例外にならない
 
 ## 対象外
 

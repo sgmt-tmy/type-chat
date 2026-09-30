@@ -248,4 +248,49 @@ describe("ChatView", () => {
       expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("雑談");
     });
   });
+
+  describe("message.deleted", () => {
+    const deleted = (groupId: string, messageId: string) =>
+      act(() => {
+        live.handlers["message.deleted"]?.({ groupId, messageId });
+      });
+
+    it("自分のメッセージの削除に成功すると一覧から消え、その後の同じ id のイベントでも例外にならない", async () => {
+      apiFetch.mockResolvedValueOnce(ok([m("1", "me", "わたし", 1)]));
+      renderView();
+      await screen.findByText("text-1");
+      apiFetch.mockResolvedValueOnce({ ok: true, data: null });
+      await userEvent.click(
+        screen.getByRole("button", { name: "メッセージの操作" }),
+      );
+      await userEvent.click(
+        await screen.findByRole("menuitem", { name: "削除" }),
+      );
+      await userEvent.click(
+        await screen.findByRole("button", { name: "削除する" }),
+      );
+      await waitFor(() => expect(screen.queryByText("text-1")).toBeNull());
+      expect(() => deleted("g1", "1")).not.toThrow();
+    });
+
+    it("この画面のグループなら一覧から消える", async () => {
+      apiFetch.mockResolvedValue(
+        ok([m("1", "u2", "はなこ", 1), m("2", "u2", "はなこ", 2)]),
+      );
+      renderView();
+      await screen.findByText("text-1");
+      deleted("g1", "1");
+      expect(screen.queryByText("text-1")).toBeNull();
+      expect(screen.getByText("text-2")).toBeTruthy();
+    });
+
+    it("別のグループ・一覧にない id では変わらない", async () => {
+      apiFetch.mockResolvedValue(ok([m("1", "u2", "はなこ", 1)]));
+      renderView();
+      await screen.findByText("text-1");
+      deleted("other", "1");
+      deleted("g1", "none");
+      expect(screen.getByText("text-1")).toBeTruthy();
+    });
+  });
 });

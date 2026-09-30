@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { DomainError } from "./errors";
 import { createGroup, renameGroup } from "./group";
 import {
+  assertCanDeleteMessage,
   createMessage,
   MESSAGE_MAX_LENGTH,
   postMessageToGroup,
@@ -170,6 +171,23 @@ describe("Message のエラーの種別", () => {
       () => postMessageToGroup(group, "stranger", "こんにちは"),
       "forbidden",
       "グループのメンバーではありません",
+    );
+  });
+});
+
+describe("assertCanDeleteMessage", () => {
+  const message = { id: "m1", groupId: "g1", senderId: "u1", text: "a", sentAt: new Date() };
+
+  it("投稿者本人なら例外を投げない", () => {
+    expect(assertCanDeleteMessage(message, "u1")).toBeUndefined();
+  });
+
+  it("投稿者以外は forbidden", () => {
+    expect(() => assertCanDeleteMessage(message, "u2")).toThrow(
+      expect.objectContaining({
+        code: "forbidden",
+        message: "メッセージを削除できるのは投稿者のみです",
+      }),
     );
   });
 });

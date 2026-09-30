@@ -1,7 +1,8 @@
 import type { GroupRepository } from "../db/group-repository";
 import type { MessageRepository } from "../db/message-repository";
 import type { UserRepository } from "../db/user-repository";
-import { postMessageToGroup, type Message } from "../message";
+import { DomainError } from "../errors";
+import { assertCanDeleteMessage, postMessageToGroup, type Message } from "../message";
 import { publish } from "./events";
 import { findGroupAsMember, UNKNOWN_MEMBER_NAME } from "./groups";
 
@@ -40,4 +41,21 @@ export async function postMessageByUser(
   publish({ type: "message.created", data: { groupId: group.id, message } }, group.members);
   const sender = await users.findById(userId);
   return { ...message, senderName: sender?.name ?? UNKNOWN_MEMBER_NAME };
+}
+
+export async function deleteMessageByUser(
+  groups: GroupRepository,
+  messages: MessageRepository,
+  groupId: string,
+  userId: string,
+  messageId: string,
+): Promise<void> {
+  const group = await findGroupAsMember(groups, groupId, userId);
+  const message = await messages.findById(messageId);
+  if (message === null || message.groupId !== group.id) {
+    throw new DomainError("not_found", "メッセージが見つかりません");
+  }
+  assertCanDeleteMessage(message, userId);
+  await messages.delete(messageId);
+  publish({ type: "message.deleted", data: { groupId: group.id, messageId } }, group.members);
 }

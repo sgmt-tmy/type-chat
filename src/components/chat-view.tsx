@@ -69,10 +69,18 @@ export function ChatView({
   }, [
   ]);
 
+  const removeMessage = useCallback((messageId: string) => {
+    setMessages((current) => current.filter((m) => m.id !== messageId));
+  }, [
+  ]);
+
   useLiveEvents({
     handlers: {
       "group.updated": (data) => {
         if (data.group.id === groupId) setGroupName(data.group.name);
+      },
+      "message.deleted": (data) => {
+        if (data.groupId === groupId) removeMessage(data.messageId);
       },
       "message.created": (data) => {
         if (data.groupId !== groupId || state !== "loaded") return;
@@ -97,6 +105,8 @@ export function ChatView({
         state={state}
         messages={messages}
         currentUserId={currentUserId}
+        groupId={groupId}
+        onDeleted={removeMessage}
         onRetry={() => void request()}
         onStartWriting={() => document.getElementById(MESSAGE_INPUT_ID)?.focus()}
       />
