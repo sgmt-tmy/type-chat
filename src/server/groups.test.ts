@@ -9,6 +9,7 @@ import {
   createGroupByUser,
   findGroupAsMember,
   getGroupDetail,
+  leaveGroupByUser,
   listGroupsOfUser,
   addMemberByUser,
   renameGroupByUser,
@@ -308,6 +309,48 @@ describe("addMemberByUser", () => {
     const detail = await addMemberByUser(groups, users, g.id, "u1", "u1");
     off();
     expect(detail.members).toHaveLength(1);
+    expect(count).toBe(0);
+  });
+});
+
+describe("leaveGroupByUser", () => {
+  async function prepare() {
+    const { groups } = setup();
+    const g = addMember(createGroup("雑談", "u1"), "u1", "u2");
+    await groups.insert(g);
+    await groups.save(addMember(g, "u1", "u3"));
+    return { groups, g };
+  }
+
+  it("脱退すると順序を保って保存され、変更前の全員に1回ずつ発行される", async () => {
+    const { groups, g } = await prepare();
+    const got: Record<string, LiveEvent[]> = { u1: [], u2: [], u3: [], u4: [] };
+    const offs = Object.keys(got).map((id) => subscribe(id, (e) => got[id]?.push(e)));
+    await leaveGroupByUser(groups, g.id, "u2");
+    offs.forEach((off) => off());
+    expect((await groups.findById(g.id))?.members).toEqual(["u1", "u3"]);
+    for (const id of ["u1", "u2", "u3"]) {
+      expect(got[id]).toHaveLength(1);
+      expect(got[id]?.[0]).toMatchObject({
+        type: "group.updated",
+        data: { group: { id: g.id, members: ["u1", "u3"] } },
+      });
+    }
+    expect(got.u4).toHaveLength(0);
+  });
+
+  it.each([
+    ["u1", "forbidden", "オーナーは脱退できません。先にオーナーを委譲してください"],
+    ["u9", "not_found", "グループが見つかりません"],
+  ])("失敗（%s）では保存も発行もしない", async (uid, code, message) => {
+    const { groups, g } = await prepare();
+    let count = 0;
+    const off = subscribe("u1", () => count++);
+    const err = await leaveGroupByUser(groups, g.id, uid).catch((e) => e);
+    off();
+    expect(err).toBeInstanceOf(DomainError);
+    expect(err).toMatchObject({ code, message });
+    expect((await groups.findById(g.id))?.members).toEqual(["u1", "u2", "u3"]);
     expect(count).toBe(0);
   });
 });

@@ -4,6 +4,7 @@ import {
   GROUP_NAME_MAX_LENGTH,
   addMember,
   createGroup,
+  leaveGroup,
   removeMember,
   renameGroup,
   transferOwner,
@@ -60,6 +61,44 @@ describe("addMember", () => {
   it("オーナーがすでにメンバーの利用者を追加すると元のgroupを返す", () => {
     const group = addMember(createGroup("開発チーム", "u1"), "u1", "u2");
     expect(addMember(group, "u1", "u2")).toBe(group);
+  });
+});
+
+describe("leaveGroup", () => {
+  const base = { id: "g1", name: "雑談", ownerId: "u1", members: ["u1", "u2", "u3"] };
+
+  it("メンバーを除いた新しい Group を返し、元は変わらない", () => {
+    const result = leaveGroup(base, "u2");
+    expect(result).toEqual({ ...base, members: ["u1", "u3"] });
+    expect(result).not.toBe(base);
+    expect(base.members).toEqual(["u1", "u2", "u3"]);
+  });
+
+  it("メンバーでなければ not_found", () => {
+    const err = (() => {
+      try {
+        leaveGroup(base, "u9");
+      } catch (e) {
+        return e;
+      }
+    })();
+    expect(err).toBeInstanceOf(DomainError);
+    expect(err).toMatchObject({ code: "not_found", message: "グループのメンバーではありません" });
+  });
+
+  it("オーナーは forbidden", () => {
+    const err = (() => {
+      try {
+        leaveGroup(base, "u1");
+      } catch (e) {
+        return e;
+      }
+    })();
+    expect(err).toBeInstanceOf(DomainError);
+    expect(err).toMatchObject({
+      code: "forbidden",
+      message: "オーナーは脱退できません。先にオーナーを委譲してください",
+    });
   });
 });
 
