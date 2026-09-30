@@ -15,7 +15,9 @@ const useLiveEvents = vi.fn((options: LiveOptions) => {
   live = options;
 });
 
-vi.mock("@/lib/api-client", () => ({ apiFetch: (...args: unknown[]) => apiFetch(...args) }));
+vi.mock("@/lib/api-client", () => ({
+  apiFetch: (...args: unknown[]) => apiFetch(...args),
+}));
 vi.mock("sonner", () => ({ toast }));
 vi.mock("@/components/use-live-events", () => ({
   useLiveEvents: (options: LiveOptions) => useLiveEvents(options),
@@ -28,7 +30,13 @@ const members = [
   { id: "u2", name: "はなこ" },
 ];
 
-function m(id: string, senderId: string, name: string, minute: number, groupId = "g1") {
+function m(
+  id: string,
+  senderId: string,
+  name: string,
+  minute: number,
+  groupId = "g1",
+) {
   return {
     id,
     groupId,
@@ -44,7 +52,14 @@ function ok(messages: unknown[]) {
 }
 
 function renderView() {
-  return render(<ChatView groupId="g1" groupName="雑談" currentUserId="me" members={members} />);
+  return render(
+    <ChatView
+      groupId="g1"
+      groupName="雑談"
+      currentUserId="me"
+      members={members}
+    />,
+  );
 }
 
 function created(message: ReturnType<typeof m>, groupId = message.groupId) {
@@ -76,9 +91,14 @@ describe("ChatView", () => {
   });
 
   it("取得に失敗すると toast と失敗表示を出し、再読み込みで取り直せる", async () => {
-    apiFetch.mockResolvedValueOnce({ ok: false, error: { code: "internal", message: "失敗" } });
+    apiFetch.mockResolvedValueOnce({
+      ok: false,
+      error: { code: "internal", message: "失敗" },
+    });
     renderView();
-    expect(await screen.findByText("メッセージを読み込めませんでした")).toBeTruthy();
+    expect(
+      await screen.findByText("メッセージを読み込めませんでした"),
+    ).toBeTruthy();
     expect(toast.error).toHaveBeenCalledWith("失敗");
     apiFetch.mockResolvedValueOnce(ok([m("1", "u2", "はなこ", 1)]));
     await userEvent.click(screen.getByRole("button", { name: "再読み込み" }));
@@ -137,7 +157,9 @@ describe("ChatView", () => {
     act(() => live.onReconnect?.());
     expect(screen.getByText("text-1")).toBeTruthy();
     expect(container.querySelector('[data-slot="skeleton"]')).toBeNull();
-    await act(async () => resolve(ok([m("1", "u2", "はなこ", 1), m("2", "u2", "はなこ", 2)])));
+    await act(async () =>
+      resolve(ok([m("1", "u2", "はなこ", 1), m("2", "u2", "はなこ", 2)])),
+    );
     expect(screen.getAllByRole("listitem")).toHaveLength(2);
   });
 
@@ -161,7 +183,10 @@ describe("ChatView", () => {
     apiFetch.mockResolvedValueOnce(ok([m("1", "u2", "はなこ", 1)]));
     renderView();
     await screen.findByText("text-1");
-    apiFetch.mockResolvedValueOnce({ ok: false, error: { code: "network", message: "切断" } });
+    apiFetch.mockResolvedValueOnce({
+      ok: false,
+      error: { code: "network", message: "切断" },
+    });
     act(() => live.onReconnect?.());
     await waitFor(() => expect(toast.error).toHaveBeenCalledWith("切断"));
     expect(screen.getByText("text-1")).toBeTruthy();
@@ -179,7 +204,9 @@ describe("ChatView", () => {
     const mine = m("9", "me", "わたし", 9);
     function post(result: unknown) {
       apiFetch.mockImplementation((_url: string, init?: { method?: string }) =>
-        Promise.resolve(init?.method === "POST" ? result : ok([m("1", "u2", "はなこ", 1)])),
+        Promise.resolve(
+          init?.method === "POST" ? result : ok([m("1", "u2", "はなこ", 1)]),
+        ),
       );
     }
 
@@ -221,7 +248,9 @@ describe("ChatView", () => {
     it("空状態の「メッセージを入力する」で入力欄にフォーカスが移る", async () => {
       apiFetch.mockResolvedValue(ok([]));
       renderView();
-      await userEvent.click(await screen.findByRole("button", { name: "メッセージを入力する" }));
+      await userEvent.click(
+        await screen.findByRole("button", { name: "メッセージを入力する" }),
+      );
       expect(screen.getByLabelText("メッセージ")).toHaveFocus();
     });
   });
@@ -232,9 +261,13 @@ describe("ChatView", () => {
       renderView();
       await screen.findByText("text-1");
       act(() => {
-        live.handlers["group.updated"]?.({ group: { id: "g1", name: "新しい名前" } });
+        live.handlers["group.updated"]?.({
+          group: { id: "g1", name: "新しい名前" },
+        });
       });
-      expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("新しい名前");
+      expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(
+        "新しい名前",
+      );
       expect(screen.getByText("text-1")).toBeTruthy();
       expect(useLiveEvents).toHaveBeenCalled();
     });
@@ -243,9 +276,58 @@ describe("ChatView", () => {
       apiFetch.mockResolvedValue(ok([]));
       renderView();
       act(() => {
-        live.handlers["group.updated"]?.({ group: { id: "other", name: "別" } });
+        live.handlers["group.updated"]?.({
+          group: { id: "other", name: "別" },
+        });
       });
-      expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("雑談");
+      expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(
+        "雑談",
+      );
+    });
+  });
+
+  describe("message.deleted", () => {
+    const deleted = (groupId: string, messageId: string) =>
+      act(() => {
+        live.handlers["message.deleted"]?.({ groupId, messageId });
+      });
+
+    it("自分のメッセージの削除に成功すると一覧から消え、その後の同じ id のイベントでも例外にならない", async () => {
+      apiFetch.mockResolvedValueOnce(ok([m("1", "me", "わたし", 1)]));
+      renderView();
+      await screen.findByText("text-1");
+      apiFetch.mockResolvedValueOnce({ ok: true, data: null });
+      await userEvent.click(
+        screen.getByRole("button", { name: "メッセージの操作" }),
+      );
+      await userEvent.click(
+        await screen.findByRole("menuitem", { name: "削除" }),
+      );
+      await userEvent.click(
+        await screen.findByRole("button", { name: "削除する" }),
+      );
+      await waitFor(() => expect(screen.queryByText("text-1")).toBeNull());
+      expect(() => deleted("g1", "1")).not.toThrow();
+    });
+
+    it("この画面のグループなら一覧から消える", async () => {
+      apiFetch.mockResolvedValue(
+        ok([m("1", "u2", "はなこ", 1), m("2", "u2", "はなこ", 2)]),
+      );
+      renderView();
+      await screen.findByText("text-1");
+      deleted("g1", "1");
+      expect(screen.queryByText("text-1")).toBeNull();
+      expect(screen.getByText("text-2")).toBeTruthy();
+    });
+
+    it("別のグループ・一覧にない id では変わらない", async () => {
+      apiFetch.mockResolvedValue(ok([m("1", "u2", "はなこ", 1)]));
+      renderView();
+      await screen.findByText("text-1");
+      deleted("other", "1");
+      deleted("g1", "none");
+      expect(screen.getByText("text-1")).toBeTruthy();
     });
   });
 });

@@ -27,8 +27,10 @@ function props(over: Partial<MessageListProps> = {}): MessageListProps {
     state: "loaded",
     messages: [],
     currentUserId: "me",
+    groupId: "g1",
     onRetry: vi.fn(),
     onStartWriting: vi.fn(),
+    onDeleted: vi.fn(),
     ...over,
   };
 }

@@ -1,9 +1,19 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { MoreHorizontal } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
+import { apiFetch } from "@/lib/api-client";
+import { ConfirmDialog } from "./confirm-dialog";
 import type { MessageJson } from "./use-live-events";
 
 /** 画面で扱うメッセージ（sentAt は ISO 8601 の文字列） */
@@ -13,8 +23,10 @@ export type MessageListProps = {
   state: "loading" | "failed" | "loaded";
   messages: Array<ChatMessage>;
   currentUserId: string;
+  groupId: string;
   onRetry: () => void;
   onStartWriting: () => void;
+  onDeleted: (messageId: string) => void;
 };
 
 /** 最下部から何px以内なら「最下部にいる」とみなすか */
@@ -43,9 +55,13 @@ export function MessageList({
   state,
   messages,
   currentUserId,
+  groupId,
   onRetry,
   onStartWriting,
+  onDeleted,
 }: MessageListProps): React.JSX.Element {
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const atBottom = useRef(true);
   const initialScrolled = useRef(false);
   const knownIds = useRef(new Set<string>());
@@ -71,11 +87,34 @@ export function MessageList({
     knownIds.current = new Set(messages.map((message) => message.id));
   }, [state, messages, currentUserId]);
 
+  async function handleDelete(): Promise<void> {
+    if (deleteTarget === null) return;
+    const messageId = deleteTarget;
+    setDeleting(true);
+    const result = await apiFetch<null>(
+      `/api/groups/${groupId}/messages/${messageId}`,
+      {
+        method: "DELETE",
+      },
+    );
+    setDeleting(false);
+    if (!result.ok) {
+      toast.error(result.error.message);
+      return;
+    }
+    toast.success("メッセージを削除しました");
+    setDeleteTarget(null);
+    onDeleted(messageId);
+  }
+
   if (state === "loading") {
     return (
       <div aria-busy="true" className="space-y-3 py-4">
         {[0, 1, 2].map((index) => (
-          <Skeleton key={index} className={index % 2 === 0 ? "h-12 w-2/3" : "ml-auto h-12 w-1/2"} />
+          <Skeleton
+            key={index}
+            className={index % 2 === 0 ? "h-12 w-2/3" : "ml-auto h-12 w-1/2"}
+          />
         ))}
       </div>
     );
@@ -110,31 +149,83 @@ export function MessageList({
   }
 
   return (
-    <ol className="space-y-3 py-4">
-      {messages.map((message) => {
-        const mine = message.senderId === currentUserId;
-        return (
-          <li key={message.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
-            <div className={`flex max-w-md flex-col gap-1 ${mine ? "items-end" : "items-start"}`}>
-              {mine ? null : (
-                <span className="text-xs text-muted-foreground">{message.senderName}</span>
-              )}
-              <div className={`flex items-end gap-2 ${mine ? "flex-row-reverse" : ""}`}>
-                <p
-                  className={`whitespace-pre-wrap break-words rounded-lg px-3 py-2 ${
-                    mine ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
-                  }`}
+    <>
+      <ol className="space-y-3 py-4">
+        {messages.map((message) => {
+          const mine = message.senderId === currentUserId;
+          return (
+            <li
+              key={message.id}
+              className={`flex ${mine ? "justify-end" : "justify-start"}`}
+            >
+              <div
+                className={`flex max-w-md flex-col gap-1 ${mine ? "items-end" : "items-start"}`}
+              >
+                {mine ? null : (
+                  <span className="text-xs text-muted-foreground">
+                    {message.senderName}
+                  </span>
+                )}
+                <div
+                  className={`flex items-end gap-2 ${mine ? "flex-row-reverse" : ""}`}
                 >
-                  {message.text}
-                </p>
-                <time dateTime={message.sentAt} className="text-xs text-muted-foreground">
-                  {formatMessageTime(message.sentAt)}
-                </time>
+                  {mine ? (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label="メッセージの操作"
+                        >
+                          <MoreHorizontal
+                            className="size-4"
+                            aria-hidden="true"
+                          />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onSelect={() => setDeleteTarget(message.id)}
+                        >
+                          削除
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  ) : null}
+                  <p
+                    className={`whitespace-pre-wrap break-words rounded-lg px-3 py-2 ${
+                      mine
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-foreground"
+                    }`}
+                  >
+                    {message.text}
+                  </p>
+                  <time
+                    dateTime={message.sentAt}
+                    className="text-xs text-muted-foreground"
+                  >
+                    {formatMessageTime(message.sentAt)}
+                  </time>
+                </div>
               </div>
-            </div>
-          </li>
-        );
-      })}
-    </ol>
+            </li>
+          );
+        })}
+      </ol>
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open && !deleting) setDeleteTarget(null);
+        }}
+        title="このメッセージを削除しますか？"
+        description="削除すると元に戻せません。"
+        confirmLabel="削除する"
+        pendingLabel="削除中…"
+        destructive
+        pending={deleting}
+        onConfirm={() => void handleDelete()}
+      />
+    </>
   );
 }
